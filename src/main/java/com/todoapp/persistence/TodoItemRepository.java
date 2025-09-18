@@ -1,13 +1,15 @@
 package com.todoapp.persistence;
 
 import com.todoapp.domain.TodoItem;
-import java.util.List;
-import java.util.UUID;
+import org.springframework.data.jdbc.repository.query.Modifying;
 import org.springframework.data.jdbc.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Repository interface for TodoItem persistence operations.
@@ -38,7 +40,7 @@ public interface TodoItemRepository extends CrudRepository<TodoItem, UUID> {
   /**
    * Find all todo items by completion status for a specific list.
    *
-   * @param listId the list identifier
+   * @param listId    the list identifier
    * @param completed the completion status
    * @return list of todo items matching the criteria
    */
@@ -90,4 +92,15 @@ public interface TodoItemRepository extends CrudRepository<TodoItem, UUID> {
    */
   @Query("SELECT MAX(POSITION) FROM TODO_ITEM WHERE LIST_ID = :listId")
   Integer findMaxPositionByListId(@Param("listId") UUID listId);
+
+  /**
+   * Bulk update to hide all completed items in a specific list.
+   * Sets hidden=true for all completed items that are not already hidden.
+   *
+   * @param listId the list identifier
+   * @return the number of items updated
+   */
+  @Modifying
+  @Query("UPDATE TODO_ITEM SET HIDDEN = true WHERE LIST_ID = :listId AND COMPLETED = true AND HIDDEN = false")
+  int hideCompletedItemsByListId(@Param("listId") UUID listId);
 }

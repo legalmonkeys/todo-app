@@ -2,6 +2,7 @@ package com.todoapp.web;
 
 import com.todoapp.domain.TodoList;
 import com.todoapp.service.TodoListService;
+import com.todoapp.service.TodoItemService;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,9 +20,11 @@ import org.springframework.web.bind.annotation.*;
 public class ListsController {
 
   private final TodoListService listService;
+  private final TodoItemService itemService;
 
-  public ListsController(TodoListService listService) {
+  public ListsController(TodoListService listService, TodoItemService itemService) {
     this.listService = listService;
+    this.itemService = itemService;
   }
 
   /**
@@ -151,5 +154,23 @@ public class ListsController {
 
     boolean exists = listService.listExists(name);
     return ResponseEntity.ok(Map.of("exists", exists, "name", name));
+  }
+
+  /**
+   * Hides all completed items in a specific list.
+   *
+   * @param id the list identifier
+   * @return success status
+   */
+  @PostMapping("/{id}/hide_completed")
+  public ResponseEntity<?> hideCompletedItems(@PathVariable UUID id) {
+    try {
+      itemService.hideCompletedItemsInList(id);
+      return ResponseEntity.ok().build();
+      
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body(Map.of("error", "Not Found", "message", e.getMessage()));
+    }
   }
 }

@@ -29,7 +29,7 @@ public class DatabaseConfig implements ApplicationRunner {
   }
 
   @Override
-  public void run(ApplicationArguments args) throws Exception {
+  public void run(ApplicationArguments args) {
     verifyDatabaseConnection();
     verifySchema();
     logDatabaseInfo();
@@ -58,7 +58,7 @@ public class DatabaseConfig implements ApplicationRunner {
     try {
       // Verify tables exist (H2 automatically converts to uppercase)
       verifyTable("TODO_LIST", new String[]{"ID", "NAME", "CREATED_AT"});
-      verifyTable("TODO_ITEM", new String[]{"ID", "LIST_ID", "TEXT", "COMPLETED", "CREATED_AT"});
+      verifyTable("TODO_ITEM", new String[]{"ID", "LIST_ID", "TEXT", "COMPLETED", "CREATED_AT", "POSITION", "HIDDEN"});
       
       // Verify foreign key constraint exists
       verifyForeignKeyConstraint();
@@ -80,9 +80,8 @@ public class DatabaseConfig implements ApplicationRunner {
         Integer.class,
         tableName
     );
-    int tableCount = tableCountObj != null ? tableCountObj : 0;
-    
-    if (tableCount != 1) {
+
+    if (tableCountObj != 1) {
       throw new RuntimeException("Table " + tableName + " does not exist");
     }
     
@@ -93,9 +92,7 @@ public class DatabaseConfig implements ApplicationRunner {
           Integer.class,
           tableName, column
       );
-      int columnCount = columnCountObj != null ? columnCountObj : 0;
-      
-      if (columnCount != 1) {
+      if (columnCountObj != 1) {
         throw new RuntimeException("Column " + column + " does not exist in table " + tableName);
       }
     }

@@ -25,6 +25,7 @@ public class TodoItem implements Persistable<UUID> {
   private String text;
   private boolean completed;
   private int position;
+  private boolean hidden;
   
   @Column("CREATED_AT")
   private Instant createdAt;
@@ -50,7 +51,7 @@ public class TodoItem implements Persistable<UUID> {
    * @throws IllegalArgumentException if any validation fails
    */
   public TodoItem(UUID id, UUID listId, String text, boolean completed, Instant createdAt) {
-    this(id, listId, text, completed, createdAt, 0);
+    this(id, listId, text, completed, createdAt, 0, false);
   }
 
   /**
@@ -64,8 +65,24 @@ public class TodoItem implements Persistable<UUID> {
    * @param position the position within the list (cannot be negative)
    * @throws IllegalArgumentException if any validation fails
    */
-  @PersistenceCreator
   public TodoItem(UUID id, UUID listId, String text, boolean completed, Instant createdAt, int position) {
+    this(id, listId, text, completed, createdAt, position, false);
+  }
+
+  /**
+   * Creates a new TodoItem with validation including position and hidden flag.
+   *
+   * @param id the unique identifier (cannot be null)
+   * @param listId the parent list identifier (cannot be null)
+   * @param text the item text (1-50 characters, non-blank)
+   * @param completed the completion status
+   * @param createdAt the creation timestamp (cannot be null)
+   * @param position the position within the list (cannot be negative)
+   * @param hidden the hidden flag
+   * @throws IllegalArgumentException if any validation fails
+   */
+  @PersistenceCreator
+  public TodoItem(UUID id, UUID listId, String text, boolean completed, Instant createdAt, int position, boolean hidden) {
     validateId(id);
     validateListId(listId);
     validateText(text);
@@ -78,6 +95,7 @@ public class TodoItem implements Persistable<UUID> {
     this.completed = completed;
     this.createdAt = createdAt;
     this.position = position;
+    this.hidden = hidden;
   }
 
   public UUID getId() {
@@ -140,6 +158,14 @@ public class TodoItem implements Persistable<UUID> {
   public void setPosition(int position) {
     validatePosition(position);
     this.position = position;
+  }
+
+  public boolean isHidden() {
+    return hidden;
+  }
+
+  public void setHidden(boolean hidden) {
+    this.hidden = hidden;
   }
 
   @Override
@@ -209,6 +235,7 @@ public class TodoItem implements Persistable<UUID> {
         + ", text='" + text + '\''
         + ", completed=" + completed
         + ", position=" + position
+        + ", hidden=" + hidden
         + ", createdAt=" + createdAt
         + '}';
   }
