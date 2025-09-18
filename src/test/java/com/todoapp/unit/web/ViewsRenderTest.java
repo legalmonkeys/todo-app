@@ -199,4 +199,104 @@ class ViewsRenderTest {
         .andExpect(xpath("//h1").exists())
         .andExpect(xpath("//a[@href='/lists']").exists()); // Should always provide way back
   }
+
+  @Test
+  void itemsView_shouldShowHideCompletedButton() throws Exception {
+    String listId = createTestList();
+    
+    mockMvc.perform(get("/lists/{listId}/items", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//div[@class='filter-controls']").exists())
+        .andExpect(xpath("//a[contains(@class,'btn-filter')]").exists())
+        .andExpect(xpath("//span[text()='Hide Completed']").exists()); // Default state shows "Hide Completed"
+  }
+
+  @Test
+  void itemsView_shouldShowCorrectButtonTextWhenHideCompletedIsTrue() throws Exception {
+    String listId = createTestList();
+    
+    mockMvc.perform(get("/lists/{listId}/items?hideCompleted=true", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//div[@class='filter-controls']").exists())
+        .andExpect(xpath("//a[contains(@class,'btn-filter')]").exists())
+        .andExpect(xpath("//span[text()='Show Completed']").exists()); // When hiding, button shows "Show Completed"
+  }
+
+  @Test
+  void itemsView_shouldShowCorrectButtonTextWhenHideCompletedIsFalse() throws Exception {
+    String listId = createTestList();
+    
+    mockMvc.perform(get("/lists/{listId}/items?hideCompleted=false", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//div[@class='filter-controls']").exists())
+        .andExpect(xpath("//a[contains(@class,'btn-filter')]").exists())
+        .andExpect(xpath("//span[text()='Hide Completed']").exists()); // When showing all, button shows "Hide Completed"
+  }
+
+  @Test
+  void itemsView_shouldGenerateCorrectToggleUrl() throws Exception {
+    String listId = createTestList();
+    
+    // Test default state - button should link to hideCompleted=true
+    mockMvc.perform(get("/lists/{listId}/items", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//a[contains(@href,'hideCompleted=true')]").exists());
+        
+    // Test when hideCompleted=true - button should link to hideCompleted=false
+    mockMvc.perform(get("/lists/{listId}/items?hideCompleted=true", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//a[contains(@href,'hideCompleted=false')]").exists());
+  }
+
+  @Test
+  void itemsView_shouldFilterItemsWhenHideCompletedIsTrue() throws Exception {
+    String listId = createTestList();
+    String itemId1 = createTestItem(listId); // Create incomplete item
+    String itemId2 = createTestItem(listId); // Create another incomplete item
+    
+    // Mark one item as completed
+    mockMvc.perform(patch("/api/items/{itemId}", itemId1)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"completed\": true}"))
+        .andExpect(status().isOk());
+    
+    // Test without hideCompleted - should show both items
+    mockMvc.perform(get("/lists/{listId}/items", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//div[@class='item' or contains(@class,'item ')]").nodeCount(2));
+    
+    // Test with hideCompleted=true - should show only incomplete item
+    mockMvc.perform(get("/lists/{listId}/items?hideCompleted=true", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//div[@class='item' or contains(@class,'item ')]").nodeCount(1));
+  }
+
+  @Test
+  void itemsView_shouldShowAllItemsWhenHideCompletedIsFalse() throws Exception {
+    String listId = createTestList();
+    String itemId1 = createTestItem(listId); // Create incomplete item
+    String itemId2 = createTestItem(listId); // Create another incomplete item
+    
+    // Mark one item as completed
+    mockMvc.perform(patch("/api/items/{itemId}", itemId1)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"completed\": true}"))
+        .andExpect(status().isOk());
+    
+    // Test with hideCompleted=false - should show both items
+    mockMvc.perform(get("/lists/{listId}/items?hideCompleted=false", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//div[@class='item' or contains(@class,'item ')]").nodeCount(2));
+  }
+
+  @Test
+  void itemsView_hideCompletedShouldWorkWithNoItems() throws Exception {
+    String listId = createTestList();
+    
+    // Test with hideCompleted=true on empty list - should not break
+    mockMvc.perform(get("/lists/{listId}/items?hideCompleted=true", listId))
+        .andExpect(status().isOk())
+        .andExpect(xpath("//div[@class='no-items']").exists())
+        .andExpect(xpath("//p[contains(text(),'No items in this list yet')]").exists());
+  }
 }

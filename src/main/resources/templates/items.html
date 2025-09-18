@@ -278,6 +278,16 @@
             </div>
             <button type="submit">Add Item</button>
         </form>
+
+        <!-- Toggle completed items visibility -->
+        <div class="filter-controls" th:if="${list}" style="margin-bottom: 20px; text-align: center;">
+            <a th:href="@{/lists/{id}/items(id=${list.id}, hideCompleted=${hideCompleted != null and hideCompleted ? 'false' : 'true'})}" 
+               class="btn-filter"
+               style="background: #6c757d; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 14px; font-weight: 600;">
+                <span th:if="${hideCompleted != null and hideCompleted}">Show Completed</span>
+                <span th:unless="${hideCompleted != null and hideCompleted}">Hide Completed</span>
+            </a>
+        </div>
         
         <!-- Items container -->
         <div id="items-container">
