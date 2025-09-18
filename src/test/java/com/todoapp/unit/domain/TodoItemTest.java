@@ -1,11 +1,13 @@
 package com.todoapp.unit.domain;
 
-import static org.assertj.core.api.Assertions.*;
-
 import com.todoapp.domain.TodoItem;
+import org.junit.jupiter.api.Test;
+
 import java.time.Instant;
 import java.util.UUID;
-import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests for TodoItem domain model validation rules.
@@ -31,8 +33,19 @@ class TodoItemTest {
   }
 
   @Test
+  public void createTodoItem_hiddenIsFalse() {
+    // setup
+
+    // act
+    TodoItem todoItem = new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "Valid text", false, Instant.now());
+
+    // verify
+    assertThat(todoItem.isHidden()).isFalse();
+  }
+
+  @Test
   void createTodoItem_withNullId_shouldThrowException() {
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(null, UUID.randomUUID(), "Valid text", false, Instant.now()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("ID cannot be null");
@@ -40,7 +53,7 @@ class TodoItemTest {
 
   @Test
   void createTodoItem_withNullListId_shouldThrowException() {
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(UUID.randomUUID(), null, "Valid text", false, Instant.now()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("List ID cannot be null");
@@ -48,7 +61,7 @@ class TodoItemTest {
 
   @Test
   void createTodoItem_withNullText_shouldThrowException() {
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(UUID.randomUUID(), UUID.randomUUID(), null, false, Instant.now()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Text cannot be null or blank");
@@ -56,7 +69,7 @@ class TodoItemTest {
 
   @Test
   void createTodoItem_withEmptyText_shouldThrowException() {
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "", false, Instant.now()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Text cannot be null or blank");
@@ -64,7 +77,7 @@ class TodoItemTest {
 
   @Test
   void createTodoItem_withWhitespaceOnlyText_shouldThrowException() {
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "   ", false, Instant.now()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Text cannot be null or blank");
@@ -74,7 +87,7 @@ class TodoItemTest {
   void createTodoItem_withTextTooLong_shouldThrowException() {
     String longText = "a".repeat(51); // 51 characters - exceeds 50 limit
 
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(UUID.randomUUID(), UUID.randomUUID(), longText, false, Instant.now()))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Text cannot exceed 50 characters");
@@ -91,7 +104,7 @@ class TodoItemTest {
 
   @Test
   void createTodoItem_withNullCreatedAt_shouldThrowException() {
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "Valid text", false, null))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("CreatedAt cannot be null");
@@ -163,7 +176,7 @@ class TodoItemTest {
 
   @Test
   void createTodoItem_withNegativePosition_shouldThrowException() {
-    assertThatThrownBy(() -> 
+    assertThatThrownBy(() ->
         new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "Valid text", false, Instant.now(), -1))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Position cannot be negative");
