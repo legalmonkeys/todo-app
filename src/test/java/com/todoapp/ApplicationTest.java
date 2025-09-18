@@ -9,8 +9,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class ApplicationTest {
 
-  @Test
-  void contextLoads() {
-    // This test will fail if the Spring context cannot start
-  }
+    @Test
+    void contextLoads() {
+        // This test will fail if the Spring context cannot start
+    }
 }

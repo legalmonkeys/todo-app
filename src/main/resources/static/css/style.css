@@ -220,19 +220,19 @@ button:active {
     body {
         padding: 10px;
     }
-    
+
     .container {
         padding: 1rem;
     }
-    
+
     h1 {
         font-size: 2rem;
     }
-    
+
     .list-actions, .item-actions {
         flex-direction: column;
     }
-    
+
     .todo-list, .todo-item {
         padding: 1rem;
     }

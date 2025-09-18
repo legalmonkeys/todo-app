@@ -24,7 +24,7 @@ class ItemReorder {
 
     setupDragAndDrop() {
         const items = document.querySelectorAll('.item[draggable="true"]');
-        
+
         items.forEach(item => {
             item.addEventListener('dragstart', this.handleDragStart.bind(this));
             item.addEventListener('dragover', this.handleDragOver.bind(this));
@@ -64,16 +64,16 @@ class ItemReorder {
     handleDrop(e) {
         e.preventDefault();
         e.target.classList.remove('drag-over');
-        
+
         if (e.target.classList.contains('item') && e.target !== this.draggedElement) {
             // Get all items and determine new order
             const container = document.querySelector('#items-container > div');
             const items = Array.from(container.querySelectorAll('.item'));
-            
+
             // Find positions
             const draggedIndex = items.indexOf(this.draggedElement);
             const targetIndex = items.indexOf(e.target);
-            
+
             if (draggedIndex !== targetIndex) {
                 // Reorder DOM elements
                 if (draggedIndex < targetIndex) {
@@ -81,7 +81,7 @@ class ItemReorder {
                 } else {
                     container.insertBefore(this.draggedElement, e.target);
                 }
-                
+
                 // Send reorder request
                 this.sendReorderRequest();
             }
@@ -125,21 +125,21 @@ class ItemReorder {
                 itemIds: itemIds
             })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            console.log('Items reordered successfully');
-        })
-        .catch(error => {
-            console.error('Failed to reorder items:', error);
-            alert('Failed to save new order. Please refresh the page.');
-            // Refresh page to restore original order
-            setTimeout(() => window.location.reload(), 1000);
-        })
-        .finally(() => {
-            this.showLoadingState(false);
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                console.log('Items reordered successfully');
+            })
+            .catch(error => {
+                console.error('Failed to reorder items:', error);
+                alert('Failed to save new order. Please refresh the page.');
+                // Refresh page to restore original order
+                setTimeout(() => window.location.reload(), 1000);
+            })
+            .finally(() => {
+                this.showLoadingState(false);
+            });
     }
 
     showLoadingState(isLoading) {

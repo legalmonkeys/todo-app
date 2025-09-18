@@ -1,23 +1,24 @@
 package com.todoapp.unit.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 import com.todoapp.domain.TodoItem;
 import com.todoapp.domain.TodoList;
 import com.todoapp.persistence.TodoItemRepository;
 import com.todoapp.persistence.TodoListRepository;
 import com.todoapp.service.TodoItemService;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for TodoItemService business logic.
@@ -26,391 +27,393 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TodoItemServiceTest {
 
-  @Mock private TodoItemRepository itemRepository;
-  @Mock private TodoListRepository listRepository;
+    @Mock
+    private TodoItemRepository itemRepository;
+    @Mock
+    private TodoListRepository listRepository;
 
-  private TodoItemService service;
+    private TodoItemService service;
 
-  private UUID testListId;
-  private TodoList testList;
+    private UUID testListId;
+    private TodoList testList;
 
-  @BeforeEach
-  void setUp() {
-    service = new TodoItemService(itemRepository, listRepository);
-    
-    testListId = UUID.randomUUID();
-    testList = new TodoList(testListId, "Test List", Instant.now());
-  }
+    @BeforeEach
+    void setUp() {
+        service = new TodoItemService(itemRepository, listRepository);
 
-  @Test
-  void createItem_withValidData_shouldCreateAndReturnItem() {
-    // Given
-    String itemText = "New task";
-    when(listRepository.findById(testListId)).thenReturn(Optional.of(testList));
-    when(itemRepository.findMaxPositionByListId(testListId)).thenReturn(2); // Existing items at 0, 1, 2
-    when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> {
-      TodoItem saved = invocation.getArgument(0);
-      saved.markNotNew(); // Simulate persistence
-      return saved;
-    });
+        testListId = UUID.randomUUID();
+        testList = new TodoList(testListId, "Test List", Instant.now());
+    }
 
-    // When
-    TodoItem created = service.createItem(testListId, itemText);
+    @Test
+    void createItem_withValidData_shouldCreateAndReturnItem() {
+        // Given
+        String itemText = "New task";
+        when(listRepository.findById(testListId)).thenReturn(Optional.of(testList));
+        when(itemRepository.findMaxPositionByListId(testListId)).thenReturn(2); // Existing items at 0, 1, 2
+        when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> {
+            TodoItem saved = invocation.getArgument(0);
+            saved.markNotNew(); // Simulate persistence
+            return saved;
+        });
 
-    // Then
-    assertThat(created).isNotNull();
-    assertThat(created.getListId()).isEqualTo(testListId);
-    assertThat(created.getText()).isEqualTo(itemText);
-    assertThat(created.isCompleted()).isFalse();
-    assertThat(created.getPosition()).isEqualTo(3); // Should be max + 1
-    assertThat(created.getId()).isNotNull();
-    assertThat(created.getCreatedAt()).isNotNull();
-    
-    verify(listRepository).findById(testListId);
-    verify(itemRepository).findMaxPositionByListId(testListId);
-    verify(itemRepository).save(any(TodoItem.class));
-  }
+        // When
+        TodoItem created = service.createItem(testListId, itemText);
 
-  @Test
-  void createItem_inEmptyList_shouldSetPositionZero() {
-    // Given
-    String itemText = "First task";
-    when(listRepository.findById(testListId)).thenReturn(Optional.of(testList));
-    when(itemRepository.findMaxPositionByListId(testListId)).thenReturn(null); // Empty list
-    when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> {
-      TodoItem saved = invocation.getArgument(0);
-      saved.markNotNew(); // Simulate persistence
-      return saved;
-    });
+        // Then
+        assertThat(created).isNotNull();
+        assertThat(created.getListId()).isEqualTo(testListId);
+        assertThat(created.getText()).isEqualTo(itemText);
+        assertThat(created.isCompleted()).isFalse();
+        assertThat(created.getPosition()).isEqualTo(3); // Should be max + 1
+        assertThat(created.getId()).isNotNull();
+        assertThat(created.getCreatedAt()).isNotNull();
 
-    // When
-    TodoItem created = service.createItem(testListId, itemText);
+        verify(listRepository).findById(testListId);
+        verify(itemRepository).findMaxPositionByListId(testListId);
+        verify(itemRepository).save(any(TodoItem.class));
+    }
 
-    // Then
-    assertThat(created).isNotNull();
-    assertThat(created.getPosition()).isEqualTo(0); // Should be 0 for first item
-    
-    verify(listRepository).findById(testListId);
-    verify(itemRepository).findMaxPositionByListId(testListId);
-    verify(itemRepository).save(any(TodoItem.class));
-  }
+    @Test
+    void createItem_inEmptyList_shouldSetPositionZero() {
+        // Given
+        String itemText = "First task";
+        when(listRepository.findById(testListId)).thenReturn(Optional.of(testList));
+        when(itemRepository.findMaxPositionByListId(testListId)).thenReturn(null); // Empty list
+        when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> {
+            TodoItem saved = invocation.getArgument(0);
+            saved.markNotNew(); // Simulate persistence
+            return saved;
+        });
 
-  @Test
-  void createItem_withNonExistentList_shouldThrowException() {
-    // Given
-    UUID nonExistentListId = UUID.randomUUID();
-    when(listRepository.findById(nonExistentListId)).thenReturn(Optional.empty());
+        // When
+        TodoItem created = service.createItem(testListId, itemText);
 
-    // When & Then
-    assertThatThrownBy(() -> service.createItem(nonExistentListId, "Some text"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("not found");
-    
-    verify(listRepository).findById(nonExistentListId);
-    verify(itemRepository, never()).save(any());
-  }
+        // Then
+        assertThat(created).isNotNull();
+        assertThat(created.getPosition()).isEqualTo(0); // Should be 0 for first item
 
-  @Test
-  void createItem_withEmptyText_shouldThrowException() {
-    // When & Then
-    assertThatThrownBy(() -> service.createItem(testListId, ""))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("cannot be empty");
-    
-    verify(listRepository, never()).findById(any());
-    verify(itemRepository, never()).save(any());
-  }
+        verify(listRepository).findById(testListId);
+        verify(itemRepository).findMaxPositionByListId(testListId);
+        verify(itemRepository).save(any(TodoItem.class));
+    }
 
-  @Test
-  void createItem_withWhitespaceText_shouldThrowException() {
-    // When & Then
-    assertThatThrownBy(() -> service.createItem(testListId, "   "))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("cannot be empty");
-    
-    verify(listRepository, never()).findById(any());
-    verify(itemRepository, never()).save(any());
-  }
+    @Test
+    void createItem_withNonExistentList_shouldThrowException() {
+        // Given
+        UUID nonExistentListId = UUID.randomUUID();
+        when(listRepository.findById(nonExistentListId)).thenReturn(Optional.empty());
 
-  @Test
-  void createItem_withTooLongText_shouldThrowException() {
-    // Given
-    String tooLongText = "A".repeat(51); // 51 characters
+        // When & Then
+        assertThatThrownBy(() -> service.createItem(nonExistentListId, "Some text"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
 
-    // When & Then
-    assertThatThrownBy(() -> service.createItem(testListId, tooLongText))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("too long");
-    
-    verify(listRepository, never()).findById(any());
-    verify(itemRepository, never()).save(any());
-  }
+        verify(listRepository).findById(nonExistentListId);
+        verify(itemRepository, never()).save(any());
+    }
 
-  @Test
-  void getItemsByList_shouldReturnItemsOrderedByPosition() {
-    // Given
-    TodoItem first = new TodoItem(UUID.randomUUID(), testListId, "First task", false, Instant.now(), 0);
-    TodoItem second = new TodoItem(UUID.randomUUID(), testListId, "Second task", false, Instant.now(), 1);
-    when(itemRepository.findAllByListIdOrderByPositionAsc(testListId))
-        .thenReturn(List.of(first, second));
+    @Test
+    void createItem_withEmptyText_shouldThrowException() {
+        // When & Then
+        assertThatThrownBy(() -> service.createItem(testListId, ""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be empty");
 
-    // When
-    List<TodoItem> result = service.getItemsByList(testListId);
+        verify(listRepository, never()).findById(any());
+        verify(itemRepository, never()).save(any());
+    }
 
-    // Then
-    assertThat(result).hasSize(2);
-    assertThat(result.get(0).getText()).isEqualTo("First task");
-    assertThat(result.get(1).getText()).isEqualTo("Second task");
-    
-    verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
-  }
+    @Test
+    void createItem_withWhitespaceText_shouldThrowException() {
+        // When & Then
+        assertThatThrownBy(() -> service.createItem(testListId, "   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be empty");
 
-  @Test
-  void getItemsByList_withNoItems_shouldReturnEmptyList() {
-    // Given
-    when(itemRepository.findAllByListIdOrderByPositionAsc(testListId)).thenReturn(List.of());
+        verify(listRepository, never()).findById(any());
+        verify(itemRepository, never()).save(any());
+    }
 
-    // When
-    List<TodoItem> result = service.getItemsByList(testListId);
+    @Test
+    void createItem_withTooLongText_shouldThrowException() {
+        // Given
+        String tooLongText = "A".repeat(51); // 51 characters
 
-    // Then
-    assertThat(result).isEmpty();
-    verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
-  }
+        // When & Then
+        assertThatThrownBy(() -> service.createItem(testListId, tooLongText))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("too long");
 
-  @Test
-  void getItemsByListAndStatus_shouldFilterByCompletedStatus() {
-    // Given
-    TodoItem incomplete = new TodoItem(UUID.randomUUID(), testListId, "Incomplete", false, Instant.now());
-    TodoItem complete = new TodoItem(UUID.randomUUID(), testListId, "Complete", true, Instant.now());
-    
-    when(itemRepository.findByListIdAndCompleted(testListId, true)).thenReturn(List.of(complete));
-    when(itemRepository.findByListIdAndCompleted(testListId, false)).thenReturn(List.of(incomplete));
+        verify(listRepository, never()).findById(any());
+        verify(itemRepository, never()).save(any());
+    }
 
-    // When
-    List<TodoItem> completedItems = service.getItemsByListAndStatus(testListId, true);
-    List<TodoItem> incompleteItems = service.getItemsByListAndStatus(testListId, false);
+    @Test
+    void getItemsByList_shouldReturnItemsOrderedByPosition() {
+        // Given
+        TodoItem first = new TodoItem(UUID.randomUUID(), testListId, "First task", false, Instant.now(), 0);
+        TodoItem second = new TodoItem(UUID.randomUUID(), testListId, "Second task", false, Instant.now(), 1);
+        when(itemRepository.findAllByListIdOrderByPositionAsc(testListId))
+                .thenReturn(List.of(first, second));
 
-    // Then
-    assertThat(completedItems).hasSize(1);
-    assertThat(completedItems.get(0).getText()).isEqualTo("Complete");
-    
-    assertThat(incompleteItems).hasSize(1);
-    assertThat(incompleteItems.get(0).getText()).isEqualTo("Incomplete");
-    
-    verify(itemRepository).findByListIdAndCompleted(testListId, true);
-    verify(itemRepository).findByListIdAndCompleted(testListId, false);
-  }
+        // When
+        List<TodoItem> result = service.getItemsByList(testListId);
 
-  @Test
-  void getItemById_withExistingId_shouldReturnItem() {
-    // Given
-    UUID itemId = UUID.randomUUID();
-    TodoItem existingItem = new TodoItem(itemId, testListId, "Test Item", false, Instant.now());
-    when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getText()).isEqualTo("First task");
+        assertThat(result.get(1).getText()).isEqualTo("Second task");
 
-    // When
-    Optional<TodoItem> result = service.getItemById(itemId);
+        verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
+    }
 
-    // Then
-    assertThat(result).isPresent();
-    assertThat(result.get().getText()).isEqualTo("Test Item");
-    
-    verify(itemRepository).findById(itemId);
-  }
+    @Test
+    void getItemsByList_withNoItems_shouldReturnEmptyList() {
+        // Given
+        when(itemRepository.findAllByListIdOrderByPositionAsc(testListId)).thenReturn(List.of());
 
-  @Test
-  void getItemById_withNonExistentId_shouldReturnEmpty() {
-    // Given
-    UUID nonExistentId = UUID.randomUUID();
-    when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+        // When
+        List<TodoItem> result = service.getItemsByList(testListId);
 
-    // When
-    Optional<TodoItem> result = service.getItemById(nonExistentId);
+        // Then
+        assertThat(result).isEmpty();
+        verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
+    }
 
-    // Then
-    assertThat(result).isEmpty();
-    verify(itemRepository).findById(nonExistentId);
-  }
+    @Test
+    void getItemsByListAndStatus_shouldFilterByCompletedStatus() {
+        // Given
+        TodoItem incomplete = new TodoItem(UUID.randomUUID(), testListId, "Incomplete", false, Instant.now());
+        TodoItem complete = new TodoItem(UUID.randomUUID(), testListId, "Complete", true, Instant.now());
 
-  @Test
-  void updateItemText_withValidData_shouldUpdateAndReturnItem() {
-    // Given
-    UUID itemId = UUID.randomUUID();
-    String newText = "Updated text";
-    TodoItem existingItem = new TodoItem(itemId, testListId, "Original text", false, Instant.now());
-    
-    when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
-    when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(itemRepository.findByListIdAndCompleted(testListId, true)).thenReturn(List.of(complete));
+        when(itemRepository.findByListIdAndCompleted(testListId, false)).thenReturn(List.of(incomplete));
 
-    // When
-    TodoItem updated = service.updateItemText(itemId, newText);
+        // When
+        List<TodoItem> completedItems = service.getItemsByListAndStatus(testListId, true);
+        List<TodoItem> incompleteItems = service.getItemsByListAndStatus(testListId, false);
 
-    // Then
-    assertThat(updated).isNotNull();
-    assertThat(updated.getText()).isEqualTo(newText);
-    assertThat(updated.getId()).isEqualTo(itemId);
-    
-    verify(itemRepository).findById(itemId);
-    verify(itemRepository).save(existingItem);
-  }
+        // Then
+        assertThat(completedItems).hasSize(1);
+        assertThat(completedItems.get(0).getText()).isEqualTo("Complete");
 
-  @Test
-  void updateItemText_withNonExistentId_shouldThrowException() {
-    // Given
-    UUID nonExistentId = UUID.randomUUID();
-    when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+        assertThat(incompleteItems).hasSize(1);
+        assertThat(incompleteItems.get(0).getText()).isEqualTo("Incomplete");
 
-    // When & Then
-    assertThatThrownBy(() -> service.updateItemText(nonExistentId, "New text"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("not found");
-    
-    verify(itemRepository).findById(nonExistentId);
-    verify(itemRepository, never()).save(any());
-  }
+        verify(itemRepository).findByListIdAndCompleted(testListId, true);
+        verify(itemRepository).findByListIdAndCompleted(testListId, false);
+    }
 
-  @Test
-  void updateItemText_withInvalidText_shouldThrowException() {
-    // Given
-    UUID itemId = UUID.randomUUID();
-    TodoItem existingItem = new TodoItem(itemId, testListId, "Original text", false, Instant.now());
-    when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+    @Test
+    void getItemById_withExistingId_shouldReturnItem() {
+        // Given
+        UUID itemId = UUID.randomUUID();
+        TodoItem existingItem = new TodoItem(itemId, testListId, "Test Item", false, Instant.now());
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
 
-    // When & Then - empty text
-    assertThatThrownBy(() -> service.updateItemText(itemId, ""))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("cannot be empty");
-    
-    // When & Then - too long text
-    String tooLongText = "A".repeat(51);
-    assertThatThrownBy(() -> service.updateItemText(itemId, tooLongText))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("too long");
-    
-    verify(itemRepository, times(2)).findById(itemId);
-    verify(itemRepository, never()).save(any());
-  }
+        // When
+        Optional<TodoItem> result = service.getItemById(itemId);
 
-  @Test
-  void toggleItemCompletion_withExistingItem_shouldToggleAndReturnItem() {
-    // Given
-    UUID itemId = UUID.randomUUID();
-    TodoItem existingItem = new TodoItem(itemId, testListId, "Test item", false, Instant.now());
-    
-    when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
-    when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // Then
+        assertThat(result).isPresent();
+        assertThat(result.get().getText()).isEqualTo("Test Item");
 
-    // When
-    TodoItem toggled = service.toggleItemCompletion(itemId);
+        verify(itemRepository).findById(itemId);
+    }
 
-    // Then
-    assertThat(toggled).isNotNull();
-    assertThat(toggled.isCompleted()).isTrue(); // Should be toggled from false to true
-    assertThat(toggled.getId()).isEqualTo(itemId);
-    
-    verify(itemRepository).findById(itemId);
-    verify(itemRepository).save(existingItem);
-  }
+    @Test
+    void getItemById_withNonExistentId_shouldReturnEmpty() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-  @Test
-  void toggleItemCompletion_withNonExistentId_shouldThrowException() {
-    // Given
-    UUID nonExistentId = UUID.randomUUID();
-    when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+        // When
+        Optional<TodoItem> result = service.getItemById(nonExistentId);
 
-    // When & Then
-    assertThatThrownBy(() -> service.toggleItemCompletion(nonExistentId))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("not found");
-    
-    verify(itemRepository).findById(nonExistentId);
-    verify(itemRepository, never()).save(any());
-  }
+        // Then
+        assertThat(result).isEmpty();
+        verify(itemRepository).findById(nonExistentId);
+    }
 
-  @Test
-  void deleteItem_withExistingId_shouldDeleteItem() {
-    // Given
-    UUID itemId = UUID.randomUUID();
-    TodoItem existingItem = new TodoItem(itemId, testListId, "To delete", false, Instant.now());
-    when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+    @Test
+    void updateItemText_withValidData_shouldUpdateAndReturnItem() {
+        // Given
+        UUID itemId = UUID.randomUUID();
+        String newText = "Updated text";
+        TodoItem existingItem = new TodoItem(itemId, testListId, "Original text", false, Instant.now());
 
-    // When
-    service.deleteItem(itemId);
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+        when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-    // Then
-    verify(itemRepository).findById(itemId);
-    verify(itemRepository).deleteById(itemId);
-  }
+        // When
+        TodoItem updated = service.updateItemText(itemId, newText);
 
-  @Test
-  void deleteItem_withNonExistentId_shouldThrowException() {
-    // Given
-    UUID nonExistentId = UUID.randomUUID();
-    when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+        // Then
+        assertThat(updated).isNotNull();
+        assertThat(updated.getText()).isEqualTo(newText);
+        assertThat(updated.getId()).isEqualTo(itemId);
 
-    // When & Then
-    assertThatThrownBy(() -> service.deleteItem(nonExistentId))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("not found");
-    
-    verify(itemRepository).findById(nonExistentId);
-    verify(itemRepository, never()).deleteById(any());
-  }
+        verify(itemRepository).findById(itemId);
+        verify(itemRepository).save(existingItem);
+    }
 
-  @Test
-  void deleteAllItemsInList_shouldFindAndDeleteAllItems() {
-    // Given
-    TodoItem item1 = new TodoItem(UUID.randomUUID(), testListId, "Item 1", false, Instant.now());
-    TodoItem item2 = new TodoItem(UUID.randomUUID(), testListId, "Item 2", true, Instant.now());
-    when(itemRepository.findByListId(testListId)).thenReturn(List.of(item1, item2));
+    @Test
+    void updateItemText_withNonExistentId_shouldThrowException() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-    // When
-    int deletedCount = service.deleteAllItemsInList(testListId);
+        // When & Then
+        assertThatThrownBy(() -> service.updateItemText(nonExistentId, "New text"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
 
-    // Then
-    assertThat(deletedCount).isEqualTo(2);
-    verify(itemRepository).findByListId(testListId);
-    verify(itemRepository).deleteAll(List.of(item1, item2));
-  }
+        verify(itemRepository).findById(nonExistentId);
+        verify(itemRepository, never()).save(any());
+    }
 
-  @Test
-  void deleteAllItemsInList_withNoItems_shouldReturnZero() {
-    // Given
-    when(itemRepository.findByListId(testListId)).thenReturn(List.of());
+    @Test
+    void updateItemText_withInvalidText_shouldThrowException() {
+        // Given
+        UUID itemId = UUID.randomUUID();
+        TodoItem existingItem = new TodoItem(itemId, testListId, "Original text", false, Instant.now());
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
 
-    // When
-    int deletedCount = service.deleteAllItemsInList(testListId);
+        // When & Then - empty text
+        assertThatThrownBy(() -> service.updateItemText(itemId, ""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be empty");
 
-    // Then
-    assertThat(deletedCount).isEqualTo(0);
-    verify(itemRepository).findByListId(testListId);
-    verify(itemRepository).deleteAll(List.of());
-  }
+        // When & Then - too long text
+        String tooLongText = "A".repeat(51);
+        assertThatThrownBy(() -> service.updateItemText(itemId, tooLongText))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("too long");
 
-  @Test
-  void getItemCountByList_shouldReturnRepositoryCount() {
-    // Given
-    when(itemRepository.countByListId(testListId)).thenReturn(3L);
+        verify(itemRepository, times(2)).findById(itemId);
+        verify(itemRepository, never()).save(any());
+    }
 
-    // When
-    long count = service.getItemCountByList(testListId);
+    @Test
+    void toggleItemCompletion_withExistingItem_shouldToggleAndReturnItem() {
+        // Given
+        UUID itemId = UUID.randomUUID();
+        TodoItem existingItem = new TodoItem(itemId, testListId, "Test item", false, Instant.now());
 
-    // Then
-    assertThat(count).isEqualTo(3L);
-    verify(itemRepository).countByListId(testListId);
-  }
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+        when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-  @Test
-  void getCompletedItemCountByList_shouldReturnCompletedCount() {
-    // Given
-    when(itemRepository.countCompletedByListId(testListId)).thenReturn(2L);
+        // When
+        TodoItem toggled = service.toggleItemCompletion(itemId);
 
-    // When
-    long count = service.getCompletedItemCountByList(testListId);
+        // Then
+        assertThat(toggled).isNotNull();
+        assertThat(toggled.isCompleted()).isTrue(); // Should be toggled from false to true
+        assertThat(toggled.getId()).isEqualTo(itemId);
 
-    // Then
-    assertThat(count).isEqualTo(2L);
-    verify(itemRepository).countCompletedByListId(testListId);
-  }
+        verify(itemRepository).findById(itemId);
+        verify(itemRepository).save(existingItem);
+    }
+
+    @Test
+    void toggleItemCompletion_withNonExistentId_shouldThrowException() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> service.toggleItemCompletion(nonExistentId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+
+        verify(itemRepository).findById(nonExistentId);
+        verify(itemRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteItem_withExistingId_shouldDeleteItem() {
+        // Given
+        UUID itemId = UUID.randomUUID();
+        TodoItem existingItem = new TodoItem(itemId, testListId, "To delete", false, Instant.now());
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+
+        // When
+        service.deleteItem(itemId);
+
+        // Then
+        verify(itemRepository).findById(itemId);
+        verify(itemRepository).deleteById(itemId);
+    }
+
+    @Test
+    void deleteItem_withNonExistentId_shouldThrowException() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> service.deleteItem(nonExistentId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+
+        verify(itemRepository).findById(nonExistentId);
+        verify(itemRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void deleteAllItemsInList_shouldFindAndDeleteAllItems() {
+        // Given
+        TodoItem item1 = new TodoItem(UUID.randomUUID(), testListId, "Item 1", false, Instant.now());
+        TodoItem item2 = new TodoItem(UUID.randomUUID(), testListId, "Item 2", true, Instant.now());
+        when(itemRepository.findByListId(testListId)).thenReturn(List.of(item1, item2));
+
+        // When
+        int deletedCount = service.deleteAllItemsInList(testListId);
+
+        // Then
+        assertThat(deletedCount).isEqualTo(2);
+        verify(itemRepository).findByListId(testListId);
+        verify(itemRepository).deleteAll(List.of(item1, item2));
+    }
+
+    @Test
+    void deleteAllItemsInList_withNoItems_shouldReturnZero() {
+        // Given
+        when(itemRepository.findByListId(testListId)).thenReturn(List.of());
+
+        // When
+        int deletedCount = service.deleteAllItemsInList(testListId);
+
+        // Then
+        assertThat(deletedCount).isEqualTo(0);
+        verify(itemRepository).findByListId(testListId);
+        verify(itemRepository).deleteAll(List.of());
+    }
+
+    @Test
+    void getItemCountByList_shouldReturnRepositoryCount() {
+        // Given
+        when(itemRepository.countByListId(testListId)).thenReturn(3L);
+
+        // When
+        long count = service.getItemCountByList(testListId);
+
+        // Then
+        assertThat(count).isEqualTo(3L);
+        verify(itemRepository).countByListId(testListId);
+    }
+
+    @Test
+    void getCompletedItemCountByList_shouldReturnCompletedCount() {
+        // Given
+        when(itemRepository.countCompletedByListId(testListId)).thenReturn(2L);
+
+        // When
+        long count = service.getCompletedItemCountByList(testListId);
+
+        // Then
+        assertThat(count).isEqualTo(2L);
+        verify(itemRepository).countCompletedByListId(testListId);
+    }
 }

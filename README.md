@@ -30,6 +30,7 @@ A **production-ready TODO application** demonstrating modern Spring Boot develop
 - **⚡ Performance Optimized**: Sub-5-second test suite target
 
 ### **Perfect For:**
+
 - **👨‍💻 Developer Portfolio**: Showcase modern Spring Boot skills
 - **🎓 Learning Reference**: Study enterprise development patterns
 - **🏗️ Project Template**: Bootstrap new Spring Boot applications
@@ -40,6 +41,7 @@ A **production-ready TODO application** demonstrating modern Spring Boot develop
 ## 🚀 Quick Start
 
 ### **Prerequisites**
+
 - Java 17+ (tested with Java 19)
 - Git (for cloning)
 
@@ -63,8 +65,9 @@ open http://localhost:8080
 ```
 
 ### **Instant Access**
+
 - **🌐 Web Application**: http://localhost:8080
-- **📡 REST API**: http://localhost:8080/api  
+- **📡 REST API**: http://localhost:8080/api
 - **🗄️ Database Console**: http://localhost:8080/h2-console
 
 ---
@@ -72,30 +75,35 @@ open http://localhost:8080
 ## ✨ Features
 
 ### **🎨 User Interface**
+
 - ✅ **Responsive Design** - Works on desktop, tablet, and mobile
 - ✅ **Accessible** - Semantic HTML with ARIA labels
 - ✅ **Modern CSS** - Clean, professional styling
 - ✅ **Interactive** - Real-time updates and visual feedback
 
 ### **🔌 REST API**
+
 - ✅ **OpenAPI 3.0 Specification** - Complete API documentation
 - ✅ **RESTful Design** - Standard HTTP methods and status codes
 - ✅ **JSON Responses** - Consistent data format
 - ✅ **Error Handling** - Detailed error messages and codes
 
 ### **🛡️ Enterprise Security**
+
 - ✅ **Security Headers** - CSP, HSTS, X-Frame-Options, etc.
 - ✅ **CORS Configuration** - Cross-origin request support
 - ✅ **Input Validation** - Server-side validation with clear error messages
 - ✅ **Safe Defaults** - Security-first configuration
 
 ### **📊 Monitoring & Observability**
+
 - ✅ **Request Logging** - Structured logs with correlation IDs
 - ✅ **Performance Monitoring** - Response time tracking
 - ✅ **Health Checks** - Application status endpoints
 - ✅ **Database Metrics** - Connection pool and query performance
 
 ### **🧪 Quality Assurance**
+
 - ✅ **100% Test Coverage** - Unit, integration, and contract tests
 - ✅ **TDD Approach** - Test-first development methodology
 - ✅ **Performance Tests** - Automated performance regression detection
@@ -103,8 +111,8 @@ open http://localhost:8080
 
 ---
 
-
 ### **🗂️ Project Structure**
+
 ```
 src/
 ├── main/java/com/todoapp/
@@ -170,14 +178,14 @@ open build/reports/tests/test/index.html
 
 ### **🎯 Test Coverage**
 
-| Layer | Tests | Coverage | Speed |
-|-------|-------|----------|-------|
-| **Domain** | 45+ tests | 100% | <1s |
-| **Service** | 35+ tests | 100% | <1s |
-| **Web** | 40+ tests | 100% | <2s |
-| **Integration** | 25+ tests | E2E | <2s |
-| **Contract** | 10+ tests | API | <1s |
-| **Total** | **183+ tests** | **100%** | **<5s** |
+| Layer           | Tests          | Coverage | Speed   |
+|-----------------|----------------|----------|---------|
+| **Domain**      | 45+ tests      | 100%     | <1s     |
+| **Service**     | 35+ tests      | 100%     | <1s     |
+| **Web**         | 40+ tests      | 100%     | <2s     |
+| **Integration** | 25+ tests      | E2E      | <2s     |
+| **Contract**    | 10+ tests      | API      | <1s     |
+| **Total**       | **183+ tests** | **100%** | **<5s** |
 
 ### **🔧 Test-Driven Development**
 
@@ -195,22 +203,22 @@ Every feature follows the **Red-Green-Refactor** cycle:
 
 - **🧱 Domain-Driven Design**: Clear separation of business logic
 - **🔄 SOLID Principles**: Maintainable, extensible code structure
-- **⚡ Performance First**: Optimized for speed and efficiency  
+- **⚡ Performance First**: Optimized for speed and efficiency
 - **🛡️ Security by Default**: Safe, secure configuration out-of-the-box
 - **🧪 Testability**: Every component designed for easy testing
 
 ### **📊 Technical Stack**
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Framework** | Spring Boot 3.2.0 | Application foundation |
-| **Database** | H2 (file-based) | Data persistence |
-| **Migration** | Flyway | Database schema management |
-| **Security** | Spring Security 6.x | Security headers & CORS |
-| **Testing** | JUnit 5 + MockMvc | Comprehensive test suite |
-| **Build** | Gradle 8.5+ | Dependency management & automation |
-| **Templates** | Thymeleaf | Server-side rendering |
-| **Logging** | SLF4J + Logback | Structured logging |
+| Component     | Technology          | Purpose                            |
+|---------------|---------------------|------------------------------------|
+| **Framework** | Spring Boot 3.2.0   | Application foundation             |
+| **Database**  | H2 (file-based)     | Data persistence                   |
+| **Migration** | Flyway              | Database schema management         |
+| **Security**  | Spring Security 6.x | Security headers & CORS            |
+| **Testing**   | JUnit 5 + MockMvc   | Comprehensive test suite           |
+| **Build**     | Gradle 8.5+         | Dependency management & automation |
+| **Templates** | Thymeleaf           | Server-side rendering              |
+| **Logging**   | SLF4J + Logback     | Structured logging                 |
 
 ### **🔄 Data Flow**
 
@@ -236,24 +244,24 @@ Every feature follows the **Red-Green-Refactor** cycle:
 
 ### **📋 Lists API**
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/lists` | Get all lists |
-| `POST` | `/api/lists` | Create new list |
-| `GET` | `/api/lists/{id}` | Get specific list |
-| `PATCH` | `/api/lists/{id}` | Update list name |
-| `DELETE` | `/api/lists/{id}` | Delete list |
+| Method   | Endpoint          | Description       |
+|----------|-------------------|-------------------|
+| `GET`    | `/api/lists`      | Get all lists     |
+| `POST`   | `/api/lists`      | Create new list   |
+| `GET`    | `/api/lists/{id}` | Get specific list |
+| `PATCH`  | `/api/lists/{id}` | Update list name  |
+| `DELETE` | `/api/lists/{id}` | Delete list       |
 
 ### **✅ Items API**
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/lists/{listId}/items` | Get items in list |
-| `POST` | `/api/lists/{listId}/items` | Create new item |
-| `GET` | `/api/items/{id}` | Get specific item |
-| `PATCH` | `/api/items/{id}` | Update item text |
-| `PATCH` | `/api/items/{id}/toggle` | Toggle completion |
-| `DELETE` | `/api/items/{id}` | Delete item |
+| Method   | Endpoint                    | Description       |
+|----------|-----------------------------|-------------------|
+| `GET`    | `/api/lists/{listId}/items` | Get items in list |
+| `POST`   | `/api/lists/{listId}/items` | Create new item   |
+| `GET`    | `/api/items/{id}`           | Get specific item |
+| `PATCH`  | `/api/items/{id}`           | Update item text  |
+| `PATCH`  | `/api/items/{id}/toggle`    | Toggle completion |
+| `DELETE` | `/api/items/{id}`           | Delete item       |
 
 ### **📊 Example Requests**
 
@@ -398,6 +406,7 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 <summary><strong>🔍 Common Issues & Solutions</strong></summary>
 
 ### **Port Already in Use**
+
 ```bash
 # Find and kill process on port 8080
 lsof -ti:8080 | xargs kill -9
@@ -407,6 +416,7 @@ lsof -ti:8080 | xargs kill -9
 ```
 
 ### **Database Locked**
+
 ```bash
 # Stop all Java processes
 pkill java
@@ -416,6 +426,7 @@ rm data/todoapp.*.db
 ```
 
 ### **Tests Failing**
+
 ```bash
 # Clean everything and retry
 ./gradlew clean build --rerun-tasks
@@ -425,6 +436,7 @@ rm data/todoapp.*.db
 ```
 
 ### **Memory Issues**
+
 ```bash
 # Increase JVM memory
 export GRADLE_OPTS="-Xmx2g -Xms1g"
@@ -438,7 +450,7 @@ export GRADLE_OPTS="-Xmx2g -Xms1g"
 ## 📊 Project Stats
 
 - **📁 Lines of Code**: ~5,000 (including tests)
-- **🧪 Test Coverage**: 100%  
+- **🧪 Test Coverage**: 100%
 - **⚡ Test Suite Speed**: <5 seconds
 - **🏗️ Architecture Layers**: 5 (Web → Service → Domain → Persistence → Database)
 - **🔒 Security Headers**: 7 configured
@@ -455,6 +467,7 @@ This project is available under the [MIT License](LICENSE).
 ## 🎉 Acknowledgments
 
 Built with ❤️ using:
+
 - [Spring Boot](https://spring.io/projects/spring-boot) - Application framework
 - [H2 Database](https://www.h2database.com/) - Embedded database
 - [Thymeleaf](https://www.thymeleaf.org/) - Template engine

@@ -1,21 +1,22 @@
 package com.todoapp.unit.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 import com.todoapp.domain.TodoList;
 import com.todoapp.persistence.TodoListRepository;
 import com.todoapp.service.TodoListService;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for TodoListService business logic.
@@ -24,304 +25,305 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TodoListServiceTest {
 
-  @Mock private TodoListRepository repository;
+    @Mock
+    private TodoListRepository repository;
 
-  private TodoListService service;
+    private TodoListService service;
 
-  @BeforeEach
-  void setUp() {
-    service = new TodoListService(repository);
-  }
+    @BeforeEach
+    void setUp() {
+        service = new TodoListService(repository);
+    }
 
-  @Test
-  void createList_withValidName_shouldCreateAndReturnList() {
-    // Given
-    String listName = "My New List";
-    when(repository.existsByName(listName)).thenReturn(false);
-    when(repository.save(any(TodoList.class))).thenAnswer(invocation -> {
-      TodoList saved = invocation.getArgument(0);
-      saved.markNotNew(); // Simulate persistence
-      return saved;
-    });
+    @Test
+    void createList_withValidName_shouldCreateAndReturnList() {
+        // Given
+        String listName = "My New List";
+        when(repository.existsByName(listName)).thenReturn(false);
+        when(repository.save(any(TodoList.class))).thenAnswer(invocation -> {
+            TodoList saved = invocation.getArgument(0);
+            saved.markNotNew(); // Simulate persistence
+            return saved;
+        });
 
-    // When
-    TodoList created = service.createList(listName);
+        // When
+        TodoList created = service.createList(listName);
 
-    // Then
-    assertThat(created).isNotNull();
-    assertThat(created.getName()).isEqualTo(listName);
-    assertThat(created.getId()).isNotNull();
-    assertThat(created.getCreatedAt()).isNotNull();
-    
-    verify(repository).existsByName(listName);
-    verify(repository).save(any(TodoList.class));
-  }
+        // Then
+        assertThat(created).isNotNull();
+        assertThat(created.getName()).isEqualTo(listName);
+        assertThat(created.getId()).isNotNull();
+        assertThat(created.getCreatedAt()).isNotNull();
 
-  @Test
-  void createList_withDuplicateName_shouldThrowException() {
-    // Given
-    String duplicateName = "Existing List";
-    when(repository.existsByName(duplicateName)).thenReturn(true);
+        verify(repository).existsByName(listName);
+        verify(repository).save(any(TodoList.class));
+    }
 
-    // When & Then
-    assertThatThrownBy(() -> service.createList(duplicateName))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("already exists");
-    
-    verify(repository).existsByName(duplicateName);
-    verify(repository, never()).save(any());
-  }
+    @Test
+    void createList_withDuplicateName_shouldThrowException() {
+        // Given
+        String duplicateName = "Existing List";
+        when(repository.existsByName(duplicateName)).thenReturn(true);
 
-  @Test
-  void createList_withEmptyName_shouldThrowException() {
-    // When & Then
-    assertThatThrownBy(() -> service.createList(""))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("cannot be empty");
-    
-    verify(repository, never()).existsByName(any());
-    verify(repository, never()).save(any());
-  }
+        // When & Then
+        assertThatThrownBy(() -> service.createList(duplicateName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already exists");
 
-  @Test
-  void createList_withWhitespaceName_shouldThrowException() {
-    // When & Then
-    assertThatThrownBy(() -> service.createList("   "))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("cannot be empty");
-    
-    verify(repository, never()).existsByName(any());
-    verify(repository, never()).save(any());
-  }
+        verify(repository).existsByName(duplicateName);
+        verify(repository, never()).save(any());
+    }
 
-  @Test
-  void createList_withTooLongName_shouldThrowException() {
-    // Given
-    String tooLongName = "A".repeat(51); // 51 characters
+    @Test
+    void createList_withEmptyName_shouldThrowException() {
+        // When & Then
+        assertThatThrownBy(() -> service.createList(""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be empty");
 
-    // When & Then
-    assertThatThrownBy(() -> service.createList(tooLongName))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("too long");
-    
-    verify(repository, never()).existsByName(any());
-    verify(repository, never()).save(any());
-  }
+        verify(repository, never()).existsByName(any());
+        verify(repository, never()).save(any());
+    }
 
-  @Test
-  void getAllLists_shouldReturnListsOrderedByCreatedAtDesc() {
-    // Given
-    Instant now = Instant.now();
-    TodoList older = new TodoList(UUID.randomUUID(), "Older List", now.minusSeconds(10));
-    TodoList newer = new TodoList(UUID.randomUUID(), "Newer List", now);
-    when(repository.findAllOrderByCreatedAtDesc()).thenReturn(List.of(newer, older));
+    @Test
+    void createList_withWhitespaceName_shouldThrowException() {
+        // When & Then
+        assertThatThrownBy(() -> service.createList("   "))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be empty");
 
-    // When
-    List<TodoList> result = service.getAllLists();
+        verify(repository, never()).existsByName(any());
+        verify(repository, never()).save(any());
+    }
 
-    // Then
-    assertThat(result).hasSize(2);
-    assertThat(result.get(0).getName()).isEqualTo("Newer List");
-    assertThat(result.get(1).getName()).isEqualTo("Older List");
-    
-    verify(repository).findAllOrderByCreatedAtDesc();
-  }
+    @Test
+    void createList_withTooLongName_shouldThrowException() {
+        // Given
+        String tooLongName = "A".repeat(51); // 51 characters
 
-  @Test
-  void getAllLists_withNoLists_shouldReturnEmptyList() {
-    // Given
-    when(repository.findAllOrderByCreatedAtDesc()).thenReturn(List.of());
+        // When & Then
+        assertThatThrownBy(() -> service.createList(tooLongName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("too long");
 
-    // When
-    List<TodoList> result = service.getAllLists();
+        verify(repository, never()).existsByName(any());
+        verify(repository, never()).save(any());
+    }
 
-    // Then
-    assertThat(result).isEmpty();
-    verify(repository).findAllOrderByCreatedAtDesc();
-  }
+    @Test
+    void getAllLists_shouldReturnListsOrderedByCreatedAtDesc() {
+        // Given
+        Instant now = Instant.now();
+        TodoList older = new TodoList(UUID.randomUUID(), "Older List", now.minusSeconds(10));
+        TodoList newer = new TodoList(UUID.randomUUID(), "Newer List", now);
+        when(repository.findAllOrderByCreatedAtDesc()).thenReturn(List.of(newer, older));
 
-  @Test
-  void getListById_withExistingId_shouldReturnList() {
-    // Given
-    UUID listId = UUID.randomUUID();
-    TodoList existingList = new TodoList(listId, "Test List", Instant.now());
-    when(repository.findById(listId)).thenReturn(Optional.of(existingList));
+        // When
+        List<TodoList> result = service.getAllLists();
 
-    // When
-    Optional<TodoList> result = service.getListById(listId);
+        // Then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getName()).isEqualTo("Newer List");
+        assertThat(result.get(1).getName()).isEqualTo("Older List");
 
-    // Then
-    assertThat(result).isPresent();
-    assertThat(result.get().getName()).isEqualTo("Test List");
-    
-    verify(repository).findById(listId);
-  }
+        verify(repository).findAllOrderByCreatedAtDesc();
+    }
 
-  @Test
-  void getListById_withNonExistentId_shouldReturnEmpty() {
-    // Given
-    UUID nonExistentId = UUID.randomUUID();
-    when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
+    @Test
+    void getAllLists_withNoLists_shouldReturnEmptyList() {
+        // Given
+        when(repository.findAllOrderByCreatedAtDesc()).thenReturn(List.of());
 
-    // When
-    Optional<TodoList> result = service.getListById(nonExistentId);
+        // When
+        List<TodoList> result = service.getAllLists();
 
-    // Then
-    assertThat(result).isEmpty();
-    verify(repository).findById(nonExistentId);
-  }
+        // Then
+        assertThat(result).isEmpty();
+        verify(repository).findAllOrderByCreatedAtDesc();
+    }
 
-  @Test
-  void renameList_withValidData_shouldUpdateAndReturnList() {
-    // Given
-    UUID listId = UUID.randomUUID();
-    String newName = "Renamed List";
-    TodoList existingList = new TodoList(listId, "Original Name", Instant.now());
-    
-    when(repository.findById(listId)).thenReturn(Optional.of(existingList));
-    when(repository.existsByNameAndIdNot(newName, listId)).thenReturn(false);
-    when(repository.save(any(TodoList.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    @Test
+    void getListById_withExistingId_shouldReturnList() {
+        // Given
+        UUID listId = UUID.randomUUID();
+        TodoList existingList = new TodoList(listId, "Test List", Instant.now());
+        when(repository.findById(listId)).thenReturn(Optional.of(existingList));
 
-    // When
-    TodoList renamed = service.renameList(listId, newName);
+        // When
+        Optional<TodoList> result = service.getListById(listId);
 
-    // Then
-    assertThat(renamed).isNotNull();
-    assertThat(renamed.getName()).isEqualTo(newName);
-    assertThat(renamed.getId()).isEqualTo(listId);
-    
-    verify(repository).findById(listId);
-    verify(repository).existsByNameAndIdNot(newName, listId);
-    verify(repository).save(existingList);
-  }
+        // Then
+        assertThat(result).isPresent();
+        assertThat(result.get().getName()).isEqualTo("Test List");
 
-  @Test
-  void renameList_withNonExistentId_shouldThrowException() {
-    // Given
-    UUID nonExistentId = UUID.randomUUID();
-    when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
+        verify(repository).findById(listId);
+    }
 
-    // When & Then
-    assertThatThrownBy(() -> service.renameList(nonExistentId, "New Name"))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("not found");
-    
-    verify(repository).findById(nonExistentId);
-    verify(repository, never()).existsByNameAndIdNot(any(), any());
-    verify(repository, never()).save(any());
-  }
+    @Test
+    void getListById_withNonExistentId_shouldReturnEmpty() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-  @Test
-  void renameList_withDuplicateName_shouldThrowException() {
-    // Given
-    UUID listId = UUID.randomUUID();
-    String duplicateName = "Existing List";
-    TodoList existingList = new TodoList(listId, "Original Name", Instant.now());
-    
-    when(repository.findById(listId)).thenReturn(Optional.of(existingList));
-    when(repository.existsByNameAndIdNot(duplicateName, listId)).thenReturn(true);
+        // When
+        Optional<TodoList> result = service.getListById(nonExistentId);
 
-    // When & Then
-    assertThatThrownBy(() -> service.renameList(listId, duplicateName))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("already exists");
-    
-    verify(repository).findById(listId);
-    verify(repository).existsByNameAndIdNot(duplicateName, listId);
-    verify(repository, never()).save(any());
-  }
+        // Then
+        assertThat(result).isEmpty();
+        verify(repository).findById(nonExistentId);
+    }
 
-  @Test
-  void renameList_withInvalidName_shouldThrowException() {
-    // Given
-    UUID listId = UUID.randomUUID();
-    TodoList existingList = new TodoList(listId, "Original Name", Instant.now());
-    when(repository.findById(listId)).thenReturn(Optional.of(existingList));
+    @Test
+    void renameList_withValidData_shouldUpdateAndReturnList() {
+        // Given
+        UUID listId = UUID.randomUUID();
+        String newName = "Renamed List";
+        TodoList existingList = new TodoList(listId, "Original Name", Instant.now());
 
-    // When & Then - empty name
-    assertThatThrownBy(() -> service.renameList(listId, ""))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("cannot be empty");
-    
-    // When & Then - too long name
-    String tooLongName = "A".repeat(51);
-    assertThatThrownBy(() -> service.renameList(listId, tooLongName))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("too long");
-    
-    verify(repository, times(2)).findById(listId);
-    verify(repository, never()).existsByNameAndIdNot(any(), any());
-    verify(repository, never()).save(any());
-  }
+        when(repository.findById(listId)).thenReturn(Optional.of(existingList));
+        when(repository.existsByNameAndIdNot(newName, listId)).thenReturn(false);
+        when(repository.save(any(TodoList.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-  @Test
-  void deleteList_withExistingId_shouldDeleteList() {
-    // Given
-    UUID listId = UUID.randomUUID();
-    TodoList existingList = new TodoList(listId, "To Delete", Instant.now());
-    when(repository.findById(listId)).thenReturn(Optional.of(existingList));
+        // When
+        TodoList renamed = service.renameList(listId, newName);
 
-    // When
-    service.deleteList(listId);
+        // Then
+        assertThat(renamed).isNotNull();
+        assertThat(renamed.getName()).isEqualTo(newName);
+        assertThat(renamed.getId()).isEqualTo(listId);
 
-    // Then
-    verify(repository).findById(listId);
-    verify(repository).deleteById(listId);
-  }
+        verify(repository).findById(listId);
+        verify(repository).existsByNameAndIdNot(newName, listId);
+        verify(repository).save(existingList);
+    }
 
-  @Test
-  void deleteList_withNonExistentId_shouldThrowException() {
-    // Given
-    UUID nonExistentId = UUID.randomUUID();
-    when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
+    @Test
+    void renameList_withNonExistentId_shouldThrowException() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
 
-    // When & Then
-    assertThatThrownBy(() -> service.deleteList(nonExistentId))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("not found");
-    
-    verify(repository).findById(nonExistentId);
-    verify(repository, never()).deleteById(any());
-  }
+        // When & Then
+        assertThatThrownBy(() -> service.renameList(nonExistentId, "New Name"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
 
-  @Test
-  void getListCount_shouldReturnRepositoryCount() {
-    // Given
-    when(repository.count()).thenReturn(5L);
+        verify(repository).findById(nonExistentId);
+        verify(repository, never()).existsByNameAndIdNot(any(), any());
+        verify(repository, never()).save(any());
+    }
 
-    // When
-    long count = service.getListCount();
+    @Test
+    void renameList_withDuplicateName_shouldThrowException() {
+        // Given
+        UUID listId = UUID.randomUUID();
+        String duplicateName = "Existing List";
+        TodoList existingList = new TodoList(listId, "Original Name", Instant.now());
 
-    // Then
-    assertThat(count).isEqualTo(5L);
-    verify(repository).count();
-  }
+        when(repository.findById(listId)).thenReturn(Optional.of(existingList));
+        when(repository.existsByNameAndIdNot(duplicateName, listId)).thenReturn(true);
 
-  @Test
-  void listExists_withExistingName_shouldReturnTrue() {
-    // Given
-    String existingName = "Existing List";
-    when(repository.existsByName(existingName)).thenReturn(true);
+        // When & Then
+        assertThatThrownBy(() -> service.renameList(listId, duplicateName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("already exists");
 
-    // When
-    boolean exists = service.listExists(existingName);
+        verify(repository).findById(listId);
+        verify(repository).existsByNameAndIdNot(duplicateName, listId);
+        verify(repository, never()).save(any());
+    }
 
-    // Then
-    assertThat(exists).isTrue();
-    verify(repository).existsByName(existingName);
-  }
+    @Test
+    void renameList_withInvalidName_shouldThrowException() {
+        // Given
+        UUID listId = UUID.randomUUID();
+        TodoList existingList = new TodoList(listId, "Original Name", Instant.now());
+        when(repository.findById(listId)).thenReturn(Optional.of(existingList));
 
-  @Test
-  void listExists_withNonExistentName_shouldReturnFalse() {
-    // Given
-    String nonExistentName = "Non-existent List";
-    when(repository.existsByName(nonExistentName)).thenReturn(false);
+        // When & Then - empty name
+        assertThatThrownBy(() -> service.renameList(listId, ""))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot be empty");
 
-    // When
-    boolean exists = service.listExists(nonExistentName);
+        // When & Then - too long name
+        String tooLongName = "A".repeat(51);
+        assertThatThrownBy(() -> service.renameList(listId, tooLongName))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("too long");
 
-    // Then
-    assertThat(exists).isFalse();
-    verify(repository).existsByName(nonExistentName);
-  }
+        verify(repository, times(2)).findById(listId);
+        verify(repository, never()).existsByNameAndIdNot(any(), any());
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void deleteList_withExistingId_shouldDeleteList() {
+        // Given
+        UUID listId = UUID.randomUUID();
+        TodoList existingList = new TodoList(listId, "To Delete", Instant.now());
+        when(repository.findById(listId)).thenReturn(Optional.of(existingList));
+
+        // When
+        service.deleteList(listId);
+
+        // Then
+        verify(repository).findById(listId);
+        verify(repository).deleteById(listId);
+    }
+
+    @Test
+    void deleteList_withNonExistentId_shouldThrowException() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> service.deleteList(nonExistentId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+
+        verify(repository).findById(nonExistentId);
+        verify(repository, never()).deleteById(any());
+    }
+
+    @Test
+    void getListCount_shouldReturnRepositoryCount() {
+        // Given
+        when(repository.count()).thenReturn(5L);
+
+        // When
+        long count = service.getListCount();
+
+        // Then
+        assertThat(count).isEqualTo(5L);
+        verify(repository).count();
+    }
+
+    @Test
+    void listExists_withExistingName_shouldReturnTrue() {
+        // Given
+        String existingName = "Existing List";
+        when(repository.existsByName(existingName)).thenReturn(true);
+
+        // When
+        boolean exists = service.listExists(existingName);
+
+        // Then
+        assertThat(exists).isTrue();
+        verify(repository).existsByName(existingName);
+    }
+
+    @Test
+    void listExists_withNonExistentName_shouldReturnFalse() {
+        // Given
+        String nonExistentName = "Non-existent List";
+        when(repository.existsByName(nonExistentName)).thenReturn(false);
+
+        // When
+        boolean exists = service.listExists(nonExistentName);
+
+        // Then
+        assertThat(exists).isFalse();
+        verify(repository).existsByName(nonExistentName);
+    }
 }
