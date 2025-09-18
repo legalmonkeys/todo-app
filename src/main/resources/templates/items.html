@@ -283,7 +283,7 @@
         <div id="items-container">
             <!-- Display items if any exist -->
             <div th:if="${hasItems}">
-                <div th:each="item,iterStat : ${items}" class="item" th:classappend="${item.completed} ? 'completed' : ''"
+                <div th:each="item,iterStat : ${items}" th:unless="${item.hidden}" class="item" th:classappend="${item.completed} ? 'completed' : ''"
                      th:data-item-id="${item.id}" th:data-position="${item.position}"
                      draggable="true">
                     <div class="item-content">
