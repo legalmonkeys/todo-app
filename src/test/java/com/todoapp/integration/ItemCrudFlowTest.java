@@ -177,4 +177,68 @@ class ItemCrudFlowTest {
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void getItemsByList_create3Items_completeOne_verifyTwoAreNonComplete() throws Exception {
+    // Create first item
+    Map<String, String> request1 = Map.of("text", "Item 1");
+    MvcResult result1 = mockMvc
+        .perform(
+            post("/api/lists/{listId}/items", testListId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request1)))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+    // Create second item
+    Map<String, String> request2 = Map.of("text", "Item 2");
+    MvcResult result2 = mockMvc
+        .perform(
+            post("/api/lists/{listId}/items", testListId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request2)))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+    // Create third item
+    Map<String, String> request3 = Map.of("text", "Item 3");
+    MvcResult result3 = mockMvc
+        .perform(
+            post("/api/lists/{listId}/items", testListId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request3)))
+        .andExpect(status().isCreated())
+        .andReturn();
+
+    // Extract item IDs
+    String responseBody1 = result1.getResponse().getContentAsString();
+    @SuppressWarnings("unchecked")
+    Map<String, Object> createdItem1 = objectMapper.readValue(responseBody1, Map.class);
+    String itemId1 = (String) createdItem1.get("id");
+
+    // Verify all 3 items are created
+    mockMvc
+        .perform(get("/api/lists/{listId}/items", testListId).accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(3));
+
+    // Complete the first item
+    Map<String, Object> completeRequest = Map.of("completed", true);
+    mockMvc
+        .perform(
+            patch("/api/items/{itemId}", itemId1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(completeRequest)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.completed").value(true));
+
+    // Call getItemsByList with completed=false and verify only non-completed items are returned
+    mockMvc
+        .perform(get("/api/lists/{listId}/items?completed=false", testListId)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].completed").value(false))
+        .andExpect(jsonPath("$[1].completed").value(false));
+  }
 }

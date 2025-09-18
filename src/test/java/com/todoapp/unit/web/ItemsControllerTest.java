@@ -80,7 +80,7 @@ class ItemsControllerTest {
   }
 
   @Test
-  void getItemsByListAndStatus_shouldFilterByCompletedStatus() throws Exception {
+  void getItemsByListAndStatus_shouldFilterByCompletedStatusTrue() throws Exception {
     // Given
     UUID listId = UUID.randomUUID();
     TodoItem completedItem = new TodoItem(UUID.randomUUID(), listId, "Completed task", true, Instant.now());
@@ -96,6 +96,27 @@ class ItemsControllerTest {
         .andExpect(jsonPath("$.length()").value(1))
         .andExpect(jsonPath("$[0].text").value("Completed task"))
         .andExpect(jsonPath("$[0].completed").value(true));
+
+    verify(itemService).getItemsByListAndStatus(listId, true);
+  }
+
+@Test
+  void getItemsByListAndStatus_shouldFilterByCompletedStatusFalse() throws Exception {
+    // Given
+    UUID listId = UUID.randomUUID();
+    TodoItem notCompletedItem = new TodoItem(UUID.randomUUID(), listId, "Not Completed task", false, Instant.now());
+    when(itemService.getItemsByListAndStatus(listId, true)).thenReturn(List.of(notCompletedItem));
+
+    // When & Then
+    mockMvc.perform(get("/api/lists/{listId}/items", listId)
+            .param("completed", "true")
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].text").value("Not Completed task"))
+        .andExpect(jsonPath("$[0].completed").value(false));
 
     verify(itemService).getItemsByListAndStatus(listId, true);
   }
