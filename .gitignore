@@ -1,0 +1,54 @@
+# Gradle files
+.gradle/
+build/
+bin/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*.swo
+
+# Java compiled files
+*.class
+*.jar
+*.war
+*.ear
+
+# Log files
+logs/
+*.log
+
+# Database files
+data/
+*.mv.db
+*.trace.db
+*.lock.db
+
+# Test reports
+test-results/
+build/reports/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Spring Boot
+spring-boot-devtools.properties
+
+# Application specific
+application-local.yml
+application-dev.yml
+application-secrets.yml

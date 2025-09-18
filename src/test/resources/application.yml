@@ -1,0 +1,65 @@
+spring:
+  datasource:
+    # In-memory H2 database for tests - always starts clean
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    hikari:
+      # Minimal connection pool for tests
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 5000
+      idle-timeout: 60000
+      max-lifetime: 300000
+  
+  h2:
+    console:
+      enabled: false  # Disabled for tests
+  
+  jpa:
+    hibernate:
+      ddl-auto: none  # Let Flyway manage schema
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+    validate-on-migrate: true
+    clean-disabled: false  # Allow clean for tests
+  
+  thymeleaf:
+    cache: false
+    check-template-location: false
+  
+  # Data source initialization
+  sql:
+    init:
+      mode: never  # Let Flyway handle initialization
+
+logging:
+  level:
+    com.challenge.todo: WARN  # Reduce noise in tests
+    org.springframework.web: WARN
+    org.springframework.jdbc: WARN
+    org.flywaydb: WARN
+    org.springframework.data.jdbc: WARN
+    REQUEST_LOGGER: WARN
+    org.hibernate: WARN
+    org.springframework.test: WARN
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"
+
+# Application-specific test configuration
+app:
+  database:
+    path: ":memory:"
+  logging:
+    requests:
+      enabled: false  # Disable request logging in tests
