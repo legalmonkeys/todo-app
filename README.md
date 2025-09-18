@@ -1,4 +1,4 @@
-# TODO Challenge Application
+# TODO App
 
 <div align="center">
 
@@ -48,7 +48,7 @@ A **production-ready TODO application** demonstrating modern Spring Boot develop
 ```bash
 # 1. Clone the repository
 git clone <repository-url>
-cd challenge
+cd todo-app
 
 # 2. Run tests (verify setup)
 ./gradlew test      # Linux/Mac
@@ -112,13 +112,13 @@ open http://localhost:8080
 
 ### **🔧 Development**
 - [**📊 API Documentation**](specs/001-title-multi-list/contracts/openapi.yaml) - OpenAPI specification
-- [**⚡ Performance Guide**](src/test/java/com/challenge/todo/perf/TestSuitePerformanceReport.md) - Optimization strategies
+- [**⚡ Performance Guide**](src/test/java/com/todoapp/perf/TestSuitePerformanceReport.md) - Optimization strategies
 - [**🧪 Testing Strategy**](#testing) - Comprehensive testing approach
 
 ### **🗂️ Project Structure**
 ```
 src/
-├── main/java/com/challenge/todo/
+├── main/java/com/todoapp/
 │   ├── 🚀 Application.java              # Spring Boot entry point
 │   ├── ⚙️  config/                      # Configuration classes
 │   │   ├── DatabaseConfig.java         # DB verification & monitoring
@@ -143,7 +143,7 @@ src/
 │   ├── ⚙️  application.yml              # Application configuration
 │   ├── 🗄️ db/migration/                 # Database schema evolution
 │   └── 🎨 templates/                    # Thymeleaf HTML templates
-└── test/java/com/challenge/todo/        # Comprehensive test suite
+└── test/java/com/todoapp/        # Comprehensive test suite
     ├── 🧪 unit/                         # Fast, isolated unit tests
     ├── 🔗 integration/                  # End-to-end integration tests  
     ├── 📋 contract/                     # API contract verification
@@ -357,7 +357,7 @@ spring:
   
 logging:
   level:
-    com.challenge.todo: INFO
+    com.todoapp: INFO
     org.springframework.web: WARN
   file:
     name: /var/log/todoapp/app.log

@@ -6,7 +6,7 @@ plugins {
     checkstyle
 }
 
-group = "com.challenge"
+group = "com.todoapp"
 version = "0.0.1-SNAPSHOT"
 
 java {

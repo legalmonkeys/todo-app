@@ -45,7 +45,7 @@ spring:
 
 logging:
   level:
-    com.challenge.todo: WARN  # Reduce noise in tests
+    com.todoapp: WARN  # Reduce noise in tests
     org.springframework.web: WARN
     org.springframework.jdbc: WARN
     org.flywaydb: WARN

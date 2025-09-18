@@ -49,7 +49,7 @@ spring:
 
 logging:
   level:
-    com.challenge.todo: INFO
+    com.todoapp: INFO
     org.springframework.web: INFO
     org.springframework.jdbc: DEBUG
     org.flywaydb: INFO
