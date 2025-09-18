@@ -18,7 +18,7 @@ Timebox: You are not limited in the time but I would like to know how long you s
     - Queries/order ensure important items list before non‑important, then by `position`.
 - API support:
     - Add an endpoint to toggle importance for an item.
-- Tests: Add at least 1 unit and 1 integration test for persistence and ordering. No existing tests are broken.
+- Tests: Add as needed. All test must pass.
 
 Note: UI surface (button, styling) is the stretch goal below. Focus first on data layer and API.
 
@@ -130,6 +130,7 @@ Hints:
     - Summary of your approach (baseline vs. stretch)
     - Notes on any trade-offs
     - Instructions to verify manually
+    - Time spent working on it
 
 Good luck and have fun!
 
