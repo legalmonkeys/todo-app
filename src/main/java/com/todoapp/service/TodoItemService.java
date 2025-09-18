@@ -270,6 +270,23 @@ public class TodoItemService {
   }
 
   /**
+   * Hides all completed todo items in a specific list.
+   * Items are marked as hidden rather than deleted to preserve data.
+   *
+   * @param listId the list identifier
+   * @return the number of completed items hidden
+   * @throws IllegalArgumentException if list not found
+   */
+  public int hideCompletedItemsInList(UUID listId) {
+    // Verify the list exists
+    listRepository.findById(listId)
+        .orElseThrow(() -> new IllegalArgumentException("List with ID " + listId + " not found"));
+    
+    // Use bulk update to hide all completed items in the list
+    return itemRepository.hideCompletedItemsByListId(listId);
+  }
+
+  /**
    * Validates item text according to business rules.
    *
    * @param text the text to validate

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.todoapp.domain.TodoList;
 import com.todoapp.service.TodoListService;
+import com.todoapp.service.TodoItemService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;
@@ -36,6 +37,7 @@ class ListsControllerTest {
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
   @MockBean private TodoListService listService;
+  @MockBean private TodoItemService itemService;
 
   @Test
   void getAllLists_shouldReturnListsInJsonFormat() throws Exception {
@@ -346,5 +348,49 @@ class ListsControllerTest {
         .andExpect(status().isBadRequest())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.error").exists());
+  }
+
+  @Test
+  void hideCompletedItems_withValidList_shouldHideItems() throws Exception {
+    // Given
+    UUID listId = UUID.randomUUID();
+    when(itemService.hideCompletedItemsInList(listId)).thenReturn(3);
+
+    // When & Then
+    mockMvc.perform(post("/api/lists/{id}/hide_completed", listId))
+        .andExpect(status().isOk());
+
+    verify(itemService).hideCompletedItemsInList(listId);
+  }
+
+  @Test
+  void hideCompletedItems_withNonExistentList_shouldReturnNotFound() throws Exception {
+    // Given
+    UUID nonExistentListId = UUID.randomUUID();
+    when(itemService.hideCompletedItemsInList(nonExistentListId))
+        .thenThrow(new IllegalArgumentException("List with ID " + nonExistentListId + " not found"));
+
+    // When & Then
+    mockMvc.perform(post("/api/lists/{id}/hide_completed", nonExistentListId)
+            .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.error").value("Not Found"))
+        .andExpect(jsonPath("$.message").value("List with ID " + nonExistentListId + " not found"));
+
+    verify(itemService).hideCompletedItemsInList(nonExistentListId);
+  }
+
+  @Test
+  void hideCompletedItems_withNoCompletedItems_shouldReturnSuccess() throws Exception {
+    // Given
+    UUID listId = UUID.randomUUID();
+    when(itemService.hideCompletedItemsInList(listId)).thenReturn(0);
+
+    // When & Then
+    mockMvc.perform(post("/api/lists/{id}/hide_completed", listId))
+        .andExpect(status().isOk());
+
+    verify(itemService).hideCompletedItemsInList(listId);
   }
 }

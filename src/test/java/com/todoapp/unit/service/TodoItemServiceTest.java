@@ -413,4 +413,51 @@ class TodoItemServiceTest {
     assertThat(count).isEqualTo(2L);
     verify(itemRepository).countCompletedByListId(testListId);
   }
+
+  @Test
+  void hideCompletedItemsInList_withValidList_shouldHideCompletedItems() {
+    // Given
+    TodoList existingList = new TodoList(testListId, "Test List", Instant.now());
+    when(listRepository.findById(testListId)).thenReturn(Optional.of(existingList));
+    when(itemRepository.hideCompletedItemsByListId(testListId)).thenReturn(3);
+
+    // When
+    int hiddenCount = service.hideCompletedItemsInList(testListId);
+
+    // Then
+    assertThat(hiddenCount).isEqualTo(3);
+    verify(listRepository).findById(testListId);
+    verify(itemRepository).hideCompletedItemsByListId(testListId);
+  }
+
+  @Test
+  void hideCompletedItemsInList_withNonExistentList_shouldThrowException() {
+    // Given
+    UUID nonExistentListId = UUID.randomUUID();
+    when(listRepository.findById(nonExistentListId)).thenReturn(Optional.empty());
+
+    // When & Then
+    assertThatThrownBy(() -> service.hideCompletedItemsInList(nonExistentListId))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("List with ID " + nonExistentListId + " not found");
+    
+    verify(listRepository).findById(nonExistentListId);
+    verify(itemRepository, never()).hideCompletedItemsByListId(any());
+  }
+
+  @Test
+  void hideCompletedItemsInList_withNoCompletedItems_shouldReturnZero() {
+    // Given
+    TodoList existingList = new TodoList(testListId, "Test List", Instant.now());
+    when(listRepository.findById(testListId)).thenReturn(Optional.of(existingList));
+    when(itemRepository.hideCompletedItemsByListId(testListId)).thenReturn(0);
+
+    // When
+    int hiddenCount = service.hideCompletedItemsInList(testListId);
+
+    // Then
+    assertThat(hiddenCount).isEqualTo(0);
+    verify(listRepository).findById(testListId);
+    verify(itemRepository).hideCompletedItemsByListId(testListId);
+  }
 }

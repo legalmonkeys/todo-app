@@ -1,15 +1,9 @@
 package com.todoapp.unit.persistence;
 
-import static org.assertj.core.api.Assertions.*;
-
 import com.todoapp.domain.TodoItem;
 import com.todoapp.domain.TodoList;
 import com.todoapp.persistence.TodoItemRepository;
 import com.todoapp.persistence.TodoListRepository;
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,20 +11,27 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 /**
  * Unit tests for TodoItemRepository CRUD operations and constraints.
  * Tests repository layer with in-memory H2 database.
  */
 @SpringBootTest
-@TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:itemtestdb",
-    "spring.flyway.enabled=true"
-})
+@TestPropertySource(properties = {"spring.datasource.url=jdbc:h2:mem:itemtestdb", "spring.flyway.enabled=true"})
 @Transactional
 class TodoItemRepositoryTest {
 
-  @Autowired private TodoItemRepository repository;
-  @Autowired private TodoListRepository listRepository;
+  @Autowired
+  private TodoItemRepository repository;
+  @Autowired
+  private TodoListRepository listRepository;
 
   private UUID testListId;
 
@@ -85,8 +86,22 @@ class TodoItemRepositoryTest {
     List<TodoItem> all = repository.findAll();
 
     assertThat(all).hasSize(2);
-    assertThat(all).extracting(TodoItem::getText)
-        .containsExactlyInAnyOrder("Item 1", "Item 2");
+    assertThat(all).extracting(TodoItem::getText).containsExactlyInAnyOrder("Item 1", "Item 2");
+  }
+
+  @Test
+  void findAll_shouldReturnAllItemsIncludingHidden() {
+    TodoItem visible = new TodoItem(UUID.randomUUID(), testListId, "Visible Item", false, Instant.now(), 0);
+    TodoItem hidden = new TodoItem(UUID.randomUUID(), testListId, "Hidden Item", false, Instant.now(), 1);
+    hidden.setHidden(true);
+    
+    repository.save(visible);
+    repository.save(hidden);
+
+    List<TodoItem> all = repository.findAll();
+
+    assertThat(all).hasSize(2);
+    assertThat(all).extracting(TodoItem::getText).containsExactlyInAnyOrder("Visible Item", "Hidden Item");
   }
 
   @Test
@@ -94,7 +109,7 @@ class TodoItemRepositoryTest {
     Instant now = Instant.now();
     TodoItem older = new TodoItem(UUID.randomUUID(), testListId, "Older Item", false, now.minusSeconds(10), 0);
     TodoItem newer = new TodoItem(UUID.randomUUID(), testListId, "Newer Item", false, now, 1);
-    
+
     repository.save(older);
     repository.save(newer);
 
@@ -109,7 +124,7 @@ class TodoItemRepositoryTest {
   void findByListIdAndCompleted_shouldFilterByStatus() {
     TodoItem incomplete = new TodoItem(UUID.randomUUID(), testListId, "Incomplete", false, Instant.now(), 0);
     TodoItem complete = new TodoItem(UUID.randomUUID(), testListId, "Complete", true, Instant.now(), 1);
-    
+
     repository.save(incomplete);
     repository.save(complete);
 
@@ -118,7 +133,7 @@ class TodoItemRepositoryTest {
 
     assertThat(completedItems).hasSize(1);
     assertThat(completedItems.get(0).getText()).isEqualTo("Complete");
-    
+
     assertThat(incompleteItems).hasSize(1);
     assertThat(incompleteItems.get(0).getText()).isEqualTo("Incomplete");
   }
@@ -140,7 +155,7 @@ class TodoItemRepositoryTest {
     TodoItem incomplete = new TodoItem(UUID.randomUUID(), testListId, "Incomplete", false, Instant.now(), 0);
     TodoItem complete1 = new TodoItem(UUID.randomUUID(), testListId, "Complete 1", true, Instant.now(), 1);
     TodoItem complete2 = new TodoItem(UUID.randomUUID(), testListId, "Complete 2", true, Instant.now(), 2);
-    
+
     repository.save(incomplete);
     repository.save(complete1);
     repository.save(complete2);
@@ -177,7 +192,7 @@ class TodoItemRepositoryTest {
   void update_shouldModifyExistingRecord() {
     TodoItem original = new TodoItem(UUID.randomUUID(), testListId, "Original Text", false, Instant.now(), 0);
     TodoItem saved = repository.save(original);
-    
+
     // Mark as not new for update operation
     saved.markNotNew();
     saved.setText("Updated Text");
@@ -187,7 +202,7 @@ class TodoItemRepositoryTest {
     assertThat(updated.getText()).isEqualTo("Updated Text");
     assertThat(updated.isCompleted()).isTrue();
     assertThat(updated.getId()).isEqualTo(original.getId());
-    
+
     Optional<TodoItem> found = repository.findById(original.getId());
     assertThat(found.get().getText()).isEqualTo("Updated Text");
     assertThat(found.get().isCompleted()).isTrue();
@@ -212,7 +227,7 @@ class TodoItemRepositoryTest {
     TodoItem item1 = new TodoItem(UUID.randomUUID(), testListId, "Item 1", false, Instant.now(), 2);
     TodoItem item2 = new TodoItem(UUID.randomUUID(), testListId, "Item 2", false, Instant.now(), 0);
     TodoItem item3 = new TodoItem(UUID.randomUUID(), testListId, "Item 3", false, Instant.now(), 1);
-    
+
     repository.save(item1);
     repository.save(item2);
     repository.save(item3);
@@ -233,7 +248,7 @@ class TodoItemRepositoryTest {
     TodoItem item1 = new TodoItem(UUID.randomUUID(), testListId, "Item 1", false, Instant.now(), 0);
     TodoItem item2 = new TodoItem(UUID.randomUUID(), testListId, "Item 2", false, Instant.now(), 5);
     TodoItem item3 = new TodoItem(UUID.randomUUID(), testListId, "Item 3", false, Instant.now(), 2);
-    
+
     repository.save(item1);
     repository.save(item2);
     repository.save(item3);
@@ -254,10 +269,89 @@ class TodoItemRepositoryTest {
   void save_withDuplicatePosition_shouldThrowException() {
     TodoItem item1 = new TodoItem(UUID.randomUUID(), testListId, "Item 1", false, Instant.now(), 0);
     TodoItem item2 = new TodoItem(UUID.randomUUID(), testListId, "Item 2", false, Instant.now(), 0);
-    
+
     repository.save(item1);
 
-    assertThatThrownBy(() -> repository.save(item2))
-        .hasCauseInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+    assertThatThrownBy(() -> repository.save(item2)).hasCauseInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+  }
+
+  @Test
+  void hideCompletedItemsByListId_shouldHideOnlyCompletedNonHiddenItems() {
+    // Create test items: completed visible, completed hidden, incomplete visible
+    TodoItem completedVisible = new TodoItem(UUID.randomUUID(), testListId, "Completed Visible", true, Instant.now(), 0);
+    TodoItem completedHidden = new TodoItem(UUID.randomUUID(), testListId, "Completed Hidden", true, Instant.now(), 1);
+    TodoItem incompleteVisible = new TodoItem(UUID.randomUUID(), testListId, "Incomplete Visible", false, Instant.now(), 2);
+    
+    completedHidden.setHidden(true); // Already hidden
+    
+    repository.save(completedVisible);
+    repository.save(completedHidden);
+    repository.save(incompleteVisible);
+
+    // Execute the bulk hide operation
+    int hiddenCount = repository.hideCompletedItemsByListId(testListId);
+
+    // Should only hide the completed visible item (1 item)
+    assertThat(hiddenCount).isEqualTo(1);
+
+    // Verify the items' states
+    List<TodoItem> allItems = repository.findByListId(testListId);
+    assertThat(allItems).hasSize(3);
+    
+    // Find each item and verify its hidden state
+    TodoItem foundCompletedVisible = allItems.stream()
+        .filter(item -> item.getText().equals("Completed Visible"))
+        .findFirst().orElseThrow();
+    assertThat(foundCompletedVisible.isHidden()).isTrue(); // Should now be hidden
+    
+    TodoItem foundCompletedHidden = allItems.stream()
+        .filter(item -> item.getText().equals("Completed Hidden"))
+        .findFirst().orElseThrow();
+    assertThat(foundCompletedHidden.isHidden()).isTrue(); // Should remain hidden
+    
+    TodoItem foundIncompleteVisible = allItems.stream()
+        .filter(item -> item.getText().equals("Incomplete Visible"))
+        .findFirst().orElseThrow();
+    assertThat(foundIncompleteVisible.isHidden()).isFalse(); // Should remain visible
+  }
+
+  @Test
+  void hideCompletedItemsByListId_withNoCompletedItems_shouldReturnZero() {
+    // Create only incomplete items
+    TodoItem incomplete1 = new TodoItem(UUID.randomUUID(), testListId, "Incomplete 1", false, Instant.now(), 0);
+    TodoItem incomplete2 = new TodoItem(UUID.randomUUID(), testListId, "Incomplete 2", false, Instant.now(), 1);
+    
+    repository.save(incomplete1);
+    repository.save(incomplete2);
+
+    // Execute the bulk hide operation
+    int hiddenCount = repository.hideCompletedItemsByListId(testListId);
+
+    // Should hide no items
+    assertThat(hiddenCount).isEqualTo(0);
+    
+    // Verify all items remain visible
+    List<TodoItem> allItems = repository.findByListId(testListId);
+    assertThat(allItems).hasSize(2);
+    allItems.forEach(item -> assertThat(item.isHidden()).isFalse());
+  }
+
+  @Test
+  void hideCompletedItemsByListId_withAllCompletedAlreadyHidden_shouldReturnZero() {
+    // Create completed items that are already hidden
+    TodoItem completed1 = new TodoItem(UUID.randomUUID(), testListId, "Completed 1", true, Instant.now(), 0);
+    TodoItem completed2 = new TodoItem(UUID.randomUUID(), testListId, "Completed 2", true, Instant.now(), 1);
+    
+    completed1.setHidden(true);
+    completed2.setHidden(true);
+    
+    repository.save(completed1);
+    repository.save(completed2);
+
+    // Execute the bulk hide operation
+    int hiddenCount = repository.hideCompletedItemsByListId(testListId);
+
+    // Should hide no items since they're already hidden
+    assertThat(hiddenCount).isEqualTo(0);
   }
 }
