@@ -103,17 +103,6 @@ open http://localhost:8080
 
 ---
 
-## 📚 Documentation
-
-### **📖 Getting Started**
-- [**🚀 Quickstart Guide**](specs/001-title-multi-list/quickstart.md) - Get up and running in 5 minutes
-- [**📋 Feature Specification**](specs/001-title-multi-list/spec.md) - Complete feature requirements
-- [**🏗️ Architecture Plan**](specs/001-title-multi-list/plan.md) - Technical architecture and design decisions
-
-### **🔧 Development**
-- [**📊 API Documentation**](specs/001-title-multi-list/contracts/openapi.yaml) - OpenAPI specification
-- [**⚡ Performance Guide**](src/test/java/com/todoapp/perf/TestSuitePerformanceReport.md) - Optimization strategies
-- [**🧪 Testing Strategy**](#testing) - Comprehensive testing approach
 
 ### **🗂️ Project Structure**
 ```
