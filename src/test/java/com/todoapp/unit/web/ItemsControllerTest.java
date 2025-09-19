@@ -293,6 +293,40 @@ class ItemsControllerTest {
     }
 
     @Test
+    public void toggleItemImportance_shouldToggleAndReturnItem() throws Exception {
+        // Given
+        UUID itemId = UUID.randomUUID();
+        UUID listId = UUID.randomUUID();
+        TodoItem toggledItem = new TodoItem(itemId, listId, "Task", true, Instant.now());
+        toggledItem.setImportant(true);
+
+        when(itemService.toggleItemImportance(itemId)).thenReturn(toggledItem);
+
+        // When & Then
+        mockMvc.perform(patch("/api/items/{id}/toggle-important", itemId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(itemId.toString()))
+                .andExpect(jsonPath("$.important").value(true));
+    }
+
+    @Test
+    void toggleItemImportance_withNonExistentId_shouldReturnNotFound() throws Exception {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemService.toggleItemImportance(nonExistentId))
+                .thenThrow(new IllegalArgumentException("Item with ID " + nonExistentId + " not found"));
+
+        // When & Then
+        mockMvc.perform(patch("/api/items/{id}/toggle-important", nonExistentId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").exists());
+    }
+
+    @Test
     void deleteItem_withExistingId_shouldReturnNoContent() throws Exception {
         // Given
         UUID itemId = UUID.randomUUID();

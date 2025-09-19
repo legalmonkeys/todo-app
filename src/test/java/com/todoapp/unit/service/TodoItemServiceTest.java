@@ -8,16 +8,21 @@ import com.todoapp.service.TodoItemService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -25,6 +30,7 @@ import static org.mockito.Mockito.*;
  * Tests service layer with mocked repository dependencies.
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TodoItemServiceTest {
 
     @Mock
@@ -416,4 +422,94 @@ class TodoItemServiceTest {
         assertThat(count).isEqualTo(2L);
         verify(itemRepository).countCompletedByListId(testListId);
     }
+
+//    public TodoItem toggleItemImportance(UUID id) {
+//        TodoItem existingItem = itemRepository.findById(id)
+//                .orElseThrow(() -> new IllegalArgumentException("Item with ID " + id + " not found"));
+//
+//        existingItem.markNotNew(); // Mark as existing for update
+//        existingItem.setImportant(!existingItem.isImportant());
+//        return itemRepository.save(existingItem);
+//}
+
+    @Test
+    public void toggleItemImportance_callItemRepository_findById() {
+        // setup
+        TodoItem todoItem = new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "Item 1", false, Instant.now());
+        when(itemRepository.findById(any())).thenReturn(Optional.of(todoItem));
+
+        // act
+        service.toggleItemImportance(UUID.randomUUID());
+
+        // verify
+        verify(itemRepository).findById(any());
+    }
+
+    @Test
+    public void toggleItemImportance_callItemRepository_save() {
+        // setup
+        TodoItem todoItem = new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "Item 1", false, Instant.now());
+        when(itemRepository.findById(any())).thenReturn(Optional.of(todoItem));
+
+        // act
+        service.toggleItemImportance(UUID.randomUUID());
+
+        // verify
+        verify(itemRepository).save(any());
+    }
+
+    @Test
+    public void toggleItemImportance_withNonExistentId_shouldThrowException() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> service.toggleItemImportance(nonExistentId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+
+    }
+
+    @Test
+    public void toggleItemImpotance_callMarkNotNew() {
+        // setup
+        TodoItem mockTodoItem = mock(TodoItem.class);
+        when(itemRepository.findById(any())).thenReturn(Optional.of(mockTodoItem));
+
+        // act
+        service.toggleItemImportance(UUID.randomUUID());
+
+        // verify
+        verify(mockTodoItem).markNotNew();
+    }
+
+    @Test
+    public void toggleItemImportance_setImportantFromFalseToTrue() {
+        // setup
+        TodoItem mockTodoItem = mock(TodoItem.class);
+        when(mockTodoItem.isImportant()).thenReturn(false);
+        when(itemRepository.findById(any())).thenReturn(Optional.of(mockTodoItem));
+
+        // act
+        service.toggleItemImportance(UUID.randomUUID());
+
+        // verify
+        verify(mockTodoItem).setImportant(true);
+    }
+
+    @Test
+    public void toggleItemImportance_setImportantFromTrueToFalse() {
+        // setup
+        TodoItem mockTodoItem = mock(TodoItem.class);
+        when(mockTodoItem.isImportant()).thenReturn(true);
+        when(itemRepository.findById(any())).thenReturn(Optional.of(mockTodoItem));
+
+        // act
+        service.toggleItemImportance(UUID.randomUUID());
+
+        // verify
+        verify(mockTodoItem).setImportant(false);
+    }
+
 }

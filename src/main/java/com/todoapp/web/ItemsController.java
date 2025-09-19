@@ -150,6 +150,17 @@ public class ItemsController {
         }
     }
 
+    @PatchMapping("/items/{id}/toggle-important")
+    public ResponseEntity<?> toggleItemImportance(@PathVariable UUID id) {
+        try {
+            TodoItem toggledItem = itemService.toggleItemImportance(id);
+            return ResponseEntity.ok(toggledItem);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Not Found", "message", e.getMessage()));
+        }
+    }
+
     /**
      * Deletes a todo item.
      *

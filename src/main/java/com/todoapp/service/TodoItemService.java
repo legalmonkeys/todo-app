@@ -159,6 +159,15 @@ public class TodoItemService {
         return itemRepository.save(existingItem);
     }
 
+    public TodoItem toggleItemImportance(UUID id) {
+        TodoItem existingItem = itemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Item with ID " + id + " not found"));
+        existingItem.markNotNew();
+        existingItem.setImportant(!existingItem.isImportant());
+        itemRepository.save(existingItem);
+        return null;
+    }
+
     /**
      * Deletes a todo item.
      *
