@@ -211,7 +211,7 @@ class TodoItemRepositoryTest {
     }
 
     @Test
-    void findAllByListIdOrderByPositionAsc_shouldReturnOrderedByPosition() {
+    void findAllByListIdOrderByPositionAsc_shouldReturnOrderedByImportanceAndPosition() {
         TodoItem item1 = new TodoItem(UUID.randomUUID(), testListId, "Item 1", false, Instant.now(), 2);
         TodoItem item2 = new TodoItem(UUID.randomUUID(), testListId, "Item 2", false, Instant.now(), 0);
         TodoItem item3 = new TodoItem(UUID.randomUUID(), testListId, "Item 3", false, Instant.now(), 1);
@@ -220,7 +220,7 @@ class TodoItemRepositoryTest {
         repository.save(item2);
         repository.save(item3);
 
-        List<TodoItem> ordered = repository.findAllByListIdOrderByPositionAsc(testListId);
+        List<TodoItem> ordered = repository.findAllByListIdOrderByImportanceAndPositionAsc(testListId);
 
         assertThat(ordered).hasSize(3);
         assertThat(ordered.get(0).getPosition()).isEqualTo(0);
@@ -262,5 +262,100 @@ class TodoItemRepositoryTest {
 
         assertThatThrownBy(() -> repository.save(item2))
                 .hasCauseInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void save_withImportantField_shouldPersistImportanceStatus() {
+        TodoItem importantItem = new TodoItem(UUID.randomUUID(), testListId, "Important Item", false, Instant.now(), 0);
+        importantItem.setImportant(true);
+
+        TodoItem saved = repository.save(importantItem);
+
+        assertThat(saved).isNotNull();
+        assertThat(saved.isImportant()).isTrue();
+        assertThat(saved.getText()).isEqualTo("Important Item");
+
+        // Verify persistence by retrieving from database
+        Optional<TodoItem> found = repository.findById(saved.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get().isImportant()).isTrue();
+    }
+
+    @Test
+    void save_withNonImportantField_shouldPersistAsNonImportant() {
+        TodoItem regularItem = new TodoItem(UUID.randomUUID(), testListId, "Regular Item", false, Instant.now(), 0);
+        // important field defaults to false, no need to set explicitly
+
+        TodoItem saved = repository.save(regularItem);
+
+        assertThat(saved).isNotNull();
+        assertThat(saved.isImportant()).isFalse();
+
+        // Verify persistence by retrieving from database
+        Optional<TodoItem> found = repository.findById(saved.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get().isImportant()).isFalse();
+    }
+
+    @Test
+    void update_shouldModifyImportantField() {
+        TodoItem original = new TodoItem(UUID.randomUUID(), testListId, "Original Item", false, Instant.now(), 0);
+        original.setImportant(false);
+        TodoItem saved = repository.save(original);
+
+        // Mark as not new for update operation
+        saved.markNotNew();
+        saved.setImportant(true);
+        TodoItem updated = repository.save(saved);
+
+        assertThat(updated.isImportant()).isTrue();
+        assertThat(updated.getId()).isEqualTo(original.getId());
+
+        Optional<TodoItem> found = repository.findById(original.getId());
+        assertThat(found.get().isImportant()).isTrue();
+    }
+
+    @Test
+    void findAllByListIdOrderByPositionAsc_shouldOrderByImportanceFirstThenImportanceAndPosition() {
+        // Create items with different importance and position combinations
+        TodoItem regularItem1 = new TodoItem(UUID.randomUUID(), testListId, "Regular Item 1", false, Instant.now(), 0);
+        regularItem1.setImportant(false);
+
+        TodoItem importantItem1 = new TodoItem(UUID.randomUUID(), testListId, "Important Item 1", false, Instant.now(), 2);
+        importantItem1.setImportant(true);
+
+        TodoItem regularItem2 = new TodoItem(UUID.randomUUID(), testListId, "Regular Item 2", false, Instant.now(), 1);
+        regularItem2.setImportant(false);
+
+        TodoItem importantItem2 = new TodoItem(UUID.randomUUID(), testListId, "Important Item 2", false, Instant.now(), 3);
+        importantItem2.setImportant(true);
+
+        // Save in random order
+        repository.save(regularItem2);
+        repository.save(importantItem1);
+        repository.save(regularItem1);
+        repository.save(importantItem2);
+
+        List<TodoItem> ordered = repository.findAllByListIdOrderByImportanceAndPositionAsc(testListId);
+
+        assertThat(ordered).hasSize(4);
+        
+        // First two should be important items, ordered by position
+        assertThat(ordered.get(0).isImportant()).isTrue();
+        assertThat(ordered.get(0).getPosition()).isEqualTo(2);
+        assertThat(ordered.get(0).getText()).isEqualTo("Important Item 1");
+        
+        assertThat(ordered.get(1).isImportant()).isTrue();
+        assertThat(ordered.get(1).getPosition()).isEqualTo(3);
+        assertThat(ordered.get(1).getText()).isEqualTo("Important Item 2");
+        
+        // Last two should be regular items, ordered by position
+        assertThat(ordered.get(2).isImportant()).isFalse();
+        assertThat(ordered.get(2).getPosition()).isEqualTo(0);
+        assertThat(ordered.get(2).getText()).isEqualTo("Regular Item 1");
+        
+        assertThat(ordered.get(3).isImportant()).isFalse();
+        assertThat(ordered.get(3).getPosition()).isEqualTo(1);
+        assertThat(ordered.get(3).getText()).isEqualTo("Regular Item 2");
     }
 }

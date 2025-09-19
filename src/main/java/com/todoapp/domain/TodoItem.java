@@ -33,6 +33,8 @@ public class TodoItem implements Persistable<UUID> {
     @Transient
     private boolean isNew = true;
 
+    private boolean important = false;
+
     /**
      * Default constructor for Spring Data JDBC.
      */
@@ -143,6 +145,14 @@ public class TodoItem implements Persistable<UUID> {
         this.position = position;
     }
 
+    public boolean isImportant() {
+        return important;
+    }
+
+    public void setImportant(boolean important) {
+        this.important = important;
+    }
+
     @Override
     public boolean isNew() {
         return isNew;
@@ -210,6 +220,7 @@ public class TodoItem implements Persistable<UUID> {
                 + ", text='" + text + '\''
                 + ", completed=" + completed
                 + ", position=" + position
+                + ", important=" + important
                 + ", createdAt=" + createdAt
                 + '}';
     }

@@ -293,6 +293,44 @@ class ItemsControllerTest {
     }
 
     @Test
+    void toggleItemImportance_shouldToggleAndReturnItem() throws Exception {
+        // Given
+        UUID listId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+        TodoItem toggledItem = new TodoItem(itemId, listId, "Task", true, Instant.now());
+
+        when(itemService.toggleItemImportance(itemId)).thenReturn(toggledItem);
+
+        // When & Then
+        mockMvc.perform(post("/api/lists/{listId}/items/{itemId}/important", listId, itemId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(itemId.toString()))
+                .andExpect(jsonPath("$.important").value(true));
+
+        verify(itemService).toggleItemImportance(itemId);
+    }
+
+    @Test
+    void toggleItemImportance_withNonExistentId_shouldReturnNotFound() throws Exception {
+        // Given
+        UUID listId = UUID.randomUUID();
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemService.toggleItemImportance(nonExistentId))
+                .thenThrow(new IllegalArgumentException("Item with ID " + nonExistentId + " not found"));
+
+        // When & Then
+        mockMvc.perform(post("/api/lists/{listId}/items/{itemId}/important", listId, nonExistentId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").exists());
+
+        verify(itemService).toggleItemImportance(nonExistentId);
+    }
+
+    @Test
     void deleteItem_withExistingId_shouldReturnNoContent() throws Exception {
         // Given
         UUID itemId = UUID.randomUUID();

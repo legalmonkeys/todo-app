@@ -180,4 +180,109 @@ class ItemCrudFlowTest {
                                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void toggleItemImportance_shouldWorkAndOrderCorrectly() throws Exception {
+        // Add three items in sequence
+        Map<String, String> request1 = Map.of("text", "First Item");
+        MvcResult result1 = mockMvc
+                .perform(post("/api/lists/{listId}/items", testListId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request1)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Thread.sleep(10); // Ensure different timestamps
+
+        Map<String, String> request2 = Map.of("text", "Second Item");
+        MvcResult result2 = mockMvc
+                .perform(post("/api/lists/{listId}/items", testListId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request2)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        Thread.sleep(10); // Ensure different timestamps
+
+        Map<String, String> request3 = Map.of("text", "Third Item");
+        MvcResult result3 = mockMvc
+                .perform(post("/api/lists/{listId}/items", testListId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request3)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        // Extract item IDs
+        @SuppressWarnings("unchecked")
+        Map<String, Object> item1 = objectMapper.readValue(result1.getResponse().getContentAsString(), Map.class);
+        String itemId1 = (String) item1.get("id");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> item2 = objectMapper.readValue(result2.getResponse().getContentAsString(), Map.class);
+        String itemId2 = (String) item2.get("id");
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> item3 = objectMapper.readValue(result3.getResponse().getContentAsString(), Map.class);
+        String itemId3 = (String) item3.get("id");
+
+        // Initially, items should be ordered by position (0, 1, 2)
+        mockMvc.perform(get("/api/lists/{listId}/items", testListId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].text").value("First Item"))
+                .andExpect(jsonPath("$[0].important").value(false))
+                .andExpect(jsonPath("$[1].text").value("Second Item"))
+                .andExpect(jsonPath("$[1].important").value(false))
+                .andExpect(jsonPath("$[2].text").value("Third Item"))
+                .andExpect(jsonPath("$[2].important").value(false));
+
+        // Mark second item as important
+        mockMvc.perform(post("/api/lists/{listId}/items/{itemId}/important", testListId, itemId2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(itemId2))
+                .andExpect(jsonPath("$.important").value(true));
+
+        // Now important item (Second) should appear first, then others by position
+        mockMvc.perform(get("/api/lists/{listId}/items", testListId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].text").value("Second Item"))
+                .andExpect(jsonPath("$[0].important").value(true))
+                .andExpect(jsonPath("$[1].text").value("First Item"))
+                .andExpect(jsonPath("$[1].important").value(false))
+                .andExpect(jsonPath("$[2].text").value("Third Item"))
+                .andExpect(jsonPath("$[2].important").value(false));
+
+        // Mark first item as important too
+        mockMvc.perform(post("/api/lists/{listId}/items/{itemId}/important", testListId, itemId1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.important").value(true));
+
+        // Now both important items should appear first, ordered by their original position (First=0, Second=1), then Third
+        mockMvc.perform(get("/api/lists/{listId}/items", testListId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].text").value("First Item"))
+                .andExpect(jsonPath("$[0].important").value(true))
+                .andExpect(jsonPath("$[1].text").value("Second Item"))
+                .andExpect(jsonPath("$[1].important").value(true))
+                .andExpect(jsonPath("$[2].text").value("Third Item"))
+                .andExpect(jsonPath("$[2].important").value(false));
+
+        // Toggle first item back to not important
+        mockMvc.perform(post("/api/lists/{listId}/items/{itemId}/important", testListId, itemId1))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.important").value(false));
+
+        // Now only Second should be important and appear first
+        mockMvc.perform(get("/api/lists/{listId}/items", testListId).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[0].text").value("Second Item"))
+                .andExpect(jsonPath("$[0].important").value(true))
+                .andExpect(jsonPath("$[1].text").value("First Item"))
+                .andExpect(jsonPath("$[1].important").value(false))
+                .andExpect(jsonPath("$[2].text").value("Third Item"))
+                .andExpect(jsonPath("$[2].important").value(false));
+    }
 }

@@ -187,4 +187,25 @@ class TodoItemTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Position cannot be negative");
     }
+
+    @Test
+    void createTodoItem_shouldHaveDefaultImportantFalse() {
+        TodoItem todoItem = new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "Valid text", false, Instant.now());
+
+        assertThat(todoItem.isImportant()).isFalse();
+    }
+
+    @Test
+    void setImportant_shouldUpdateImportantStatus() {
+        TodoItem todoItem = new TodoItem(UUID.randomUUID(), UUID.randomUUID(), "Valid text", false, Instant.now());
+
+        todoItem.setImportant(true);
+
+        assertThat(todoItem.isImportant()).isTrue();
+
+        todoItem.setImportant(false);
+
+        assertThat(todoItem.isImportant()).isFalse();
+    }
+
 }

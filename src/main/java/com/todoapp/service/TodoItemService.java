@@ -58,7 +58,7 @@ public class TodoItemService {
      */
     @Transactional(readOnly = true)
     public List<TodoItem> getItemsByList(UUID listId) {
-        return itemRepository.findAllByListIdOrderByPositionAsc(listId);
+        return itemRepository.findAllByListIdOrderByImportanceAndPositionAsc(listId);
     }
 
     /**
@@ -160,6 +160,22 @@ public class TodoItemService {
     }
 
     /**
+     * Toggles the importance status of a todo item.
+     *
+     * @param id the item identifier
+     * @return the updated todo item
+     * @throws IllegalArgumentException if item not found
+     */
+    public TodoItem toggleItemImportance(UUID id) {
+        TodoItem existingItem = itemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Item with ID " + id + " not found"));
+
+        existingItem.markNotNew(); // Mark as existing for update
+        existingItem.setImportant(!existingItem.isImportant());
+        return itemRepository.save(existingItem);
+    }
+
+    /**
      * Deletes a todo item.
      *
      * @param id the item identifier
@@ -221,7 +237,7 @@ public class TodoItemService {
                 .orElseThrow(() -> new IllegalArgumentException("List with ID " + listId + " not found"));
 
         // Get all current items in the list
-        List<TodoItem> currentItems = itemRepository.findAllByListIdOrderByPositionAsc(listId);
+        List<TodoItem> currentItems = itemRepository.findAllByListIdOrderByImportanceAndPositionAsc(listId);
 
         // Validate that provided IDs exactly match existing items
         if (currentItems.size() != orderedItemIds.size()) {

@@ -154,7 +154,7 @@ class TodoItemServiceTest {
         // Given
         TodoItem first = new TodoItem(UUID.randomUUID(), testListId, "First task", false, Instant.now(), 0);
         TodoItem second = new TodoItem(UUID.randomUUID(), testListId, "Second task", false, Instant.now(), 1);
-        when(itemRepository.findAllByListIdOrderByPositionAsc(testListId))
+        when(itemRepository.findAllByListIdOrderByImportanceAndPositionAsc(testListId))
                 .thenReturn(List.of(first, second));
 
         // When
@@ -165,20 +165,20 @@ class TodoItemServiceTest {
         assertThat(result.get(0).getText()).isEqualTo("First task");
         assertThat(result.get(1).getText()).isEqualTo("Second task");
 
-        verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
+        verify(itemRepository).findAllByListIdOrderByImportanceAndPositionAsc(testListId);
     }
 
     @Test
     void getItemsByList_withNoItems_shouldReturnEmptyList() {
         // Given
-        when(itemRepository.findAllByListIdOrderByPositionAsc(testListId)).thenReturn(List.of());
+        when(itemRepository.findAllByListIdOrderByImportanceAndPositionAsc(testListId)).thenReturn(List.of());
 
         // When
         List<TodoItem> result = service.getItemsByList(testListId);
 
         // Then
         assertThat(result).isEmpty();
-        verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
+        verify(itemRepository).findAllByListIdOrderByImportanceAndPositionAsc(testListId);
     }
 
     @Test
@@ -324,6 +324,43 @@ class TodoItemServiceTest {
 
         // When & Then
         assertThatThrownBy(() -> service.toggleItemCompletion(nonExistentId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("not found");
+
+        verify(itemRepository).findById(nonExistentId);
+        verify(itemRepository, never()).save(any());
+    }
+
+    @Test
+    void toggleItemImportance_withExistingItem_shouldToggleAndReturnItem() {
+        // Given
+        UUID itemId = UUID.randomUUID();
+        TodoItem existingItem = new TodoItem(itemId, testListId, "Test item", false, Instant.now());
+        existingItem.setImportant(false); // Start with false
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+        when(itemRepository.save(any(TodoItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        TodoItem toggled = service.toggleItemImportance(itemId);
+
+        // Then
+        assertThat(toggled).isNotNull();
+        assertThat(toggled.isImportant()).isTrue(); // Should be toggled from false to true
+        assertThat(toggled.getId()).isEqualTo(itemId);
+
+        verify(itemRepository).findById(itemId);
+        verify(itemRepository).save(existingItem);
+    }
+
+    @Test
+    void toggleItemImportance_withNonExistentId_shouldThrowException() {
+        // Given
+        UUID nonExistentId = UUID.randomUUID();
+        when(itemRepository.findById(nonExistentId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> service.toggleItemImportance(nonExistentId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("not found");
 

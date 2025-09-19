@@ -151,6 +151,24 @@ public class ItemsController {
     }
 
     /**
+     * Toggles the importance status of a todo item.
+     *
+     * @param itemId the item identifier
+     * @return the updated todo item
+     */
+    @PostMapping("/lists/{listId}/items/{itemId}/important")
+    public ResponseEntity<?> toggleItemImportance(@PathVariable UUID itemId) {
+        try {
+            TodoItem toggledItem = itemService.toggleItemImportance(itemId);
+            return ResponseEntity.ok(toggledItem);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Not Found", "message", e.getMessage()));
+        }
+    }
+
+    /**
      * Deletes a todo item.
      *
      * @param id the item identifier
