@@ -51,14 +51,14 @@ public class TodoItemService {
     }
 
     /**
-     * Gets all todo items for a list ordered by position ascending.
+     * Gets all todo items for a list ordered by importance first (descending), then by position ascending.
      *
      * @param listId the list identifier
-     * @return list of todo items for the specified list ordered by position
+     * @return list of todo items for the specified list ordered by importance first, then position
      */
     @Transactional(readOnly = true)
     public List<TodoItem> getItemsByList(UUID listId) {
-        return itemRepository.findAllByListIdOrderByPositionAsc(listId);
+        return itemRepository.findAllByListIdOrdered(listId);
     }
 
     /**
@@ -230,7 +230,7 @@ public class TodoItemService {
                 .orElseThrow(() -> new IllegalArgumentException("List with ID " + listId + " not found"));
 
         // Get all current items in the list
-        List<TodoItem> currentItems = itemRepository.findAllByListIdOrderByPositionAsc(listId);
+        List<TodoItem> currentItems = itemRepository.findAllByListIdOrdered(listId);
 
         // Validate that provided IDs exactly match existing items
         if (currentItems.size() != orderedItemIds.size()) {

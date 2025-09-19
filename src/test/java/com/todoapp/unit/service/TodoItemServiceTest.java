@@ -8,9 +8,7 @@ import com.todoapp.service.TodoItemService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -160,7 +158,7 @@ class TodoItemServiceTest {
         // Given
         TodoItem first = new TodoItem(UUID.randomUUID(), testListId, "First task", false, Instant.now(), 0);
         TodoItem second = new TodoItem(UUID.randomUUID(), testListId, "Second task", false, Instant.now(), 1);
-        when(itemRepository.findAllByListIdOrderByPositionAsc(testListId))
+        when(itemRepository.findAllByListIdOrdered(testListId))
                 .thenReturn(List.of(first, second));
 
         // When
@@ -171,20 +169,20 @@ class TodoItemServiceTest {
         assertThat(result.get(0).getText()).isEqualTo("First task");
         assertThat(result.get(1).getText()).isEqualTo("Second task");
 
-        verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
+        verify(itemRepository).findAllByListIdOrdered(testListId);
     }
 
     @Test
     void getItemsByList_withNoItems_shouldReturnEmptyList() {
         // Given
-        when(itemRepository.findAllByListIdOrderByPositionAsc(testListId)).thenReturn(List.of());
+        when(itemRepository.findAllByListIdOrdered(testListId)).thenReturn(List.of());
 
         // When
         List<TodoItem> result = service.getItemsByList(testListId);
 
         // Then
         assertThat(result).isEmpty();
-        verify(itemRepository).findAllByListIdOrderByPositionAsc(testListId);
+        verify(itemRepository).findAllByListIdOrdered(testListId);
     }
 
     @Test

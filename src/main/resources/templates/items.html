@@ -192,6 +192,24 @@
             background: #545b62;
         }
 
+        .btn-important {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-important:hover {
+            background: #e0a800;
+        }
+
+        .btn-important.important {
+            background: #ff6b35;
+            color: white;
+        }
+
+        .btn-important.important:hover {
+            background: #e55a2b;
+        }
+
         .btn-danger {
             background: #dc3545;
             color: white;
@@ -296,6 +314,14 @@
                                 th:text="${item.completed} ? 'Undo' : 'Done'"
                                 type="submit">
                             Toggle
+                        </button>
+                    </form>
+                    <form method="post" style="display: inline;" th:action="@{/api/items/{id}/toggle-important(id=${item.id})}">
+                        <input name="_method" type="hidden" value="patch"/>
+                        <button class="btn-sm btn-important" th:classappend="${item.important} ? 'important' : ''"
+                                th:text="${item.important} ? '★' : '☆'"
+                                type="submit" title="Toggle Important">
+                            Important
                         </button>
                     </form>
                     <form method="post" style="display: inline;" th:action="@{/api/items/{id}(id=${item.id})}">
