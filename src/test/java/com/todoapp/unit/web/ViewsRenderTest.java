@@ -202,4 +202,53 @@ class ViewsRenderTest {
                 .andExpect(xpath("//h1").exists())
                 .andExpect(xpath("//a[@href='/lists']").exists()); // Should always provide way back
     }
+
+    @Test
+    void itemsView_shouldDisplayImportantItemsFirst() throws Exception {
+        String testListId = createTestList();
+
+        // Create a regular item (position 0)
+        ObjectMapper mapper = new ObjectMapper();
+        String regularItemJson = mapper.writeValueAsString(Map.of("text", "Regular Item"));
+        mockMvc.perform(post("/api/lists/{listId}/items", testListId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(regularItemJson))
+                .andExpect(status().isCreated());
+
+        // Create another regular item (position 1) 
+        String regularItem2Json = mapper.writeValueAsString(Map.of("text", "Another Regular"));
+        mockMvc.perform(post("/api/lists/{listId}/items", testListId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(regularItem2Json))
+                .andExpect(status().isCreated());
+
+        // Create an important item (position 2)
+        String importantItemJson = mapper.writeValueAsString(Map.of("text", "Important Item"));
+        String importantResponse = mockMvc.perform(post("/api/lists/{listId}/items", testListId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(importantItemJson))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        // Extract the item ID to mark it as important
+        Map<String, Object> importantItemData = mapper.readValue(importantResponse, Map.class);
+        String importantItemId = (String) importantItemData.get("id");
+
+        // Mark the item as important
+        mockMvc.perform(patch("/api/items/{id}/toggle-important", importantItemId))
+                .andExpect(status().isOk());
+
+        // Now check the items view - important items should appear first
+        String htmlContent = mockMvc.perform(get("/lists/{listId}/items", testListId))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        
+        System.out.println("[DEBUG_LOG] HTML Content: " + htmlContent);
+        
+        mockMvc.perform(get("/lists/{listId}/items", testListId))
+                .andExpect(status().isOk())
+                .andExpect(xpath("//div[contains(@class,'item')][1]//div[@class='item-text']").string("Important Item"))
+                .andExpect(xpath("//div[contains(@class,'item')][2]//div[@class='item-text']").string("Regular Item"))
+                .andExpect(xpath("//div[contains(@class,'item')][3]//div[@class='item-text']").string("Another Regular"));
+    }
 }

@@ -26,6 +26,7 @@ public class TodoItem implements Persistable<UUID> {
     private String text;
     private boolean completed;
     private int position;
+    private boolean important;
 
     @Column("CREATED_AT")
     private Instant createdAt;
@@ -63,6 +64,7 @@ public class TodoItem implements Persistable<UUID> {
      * @param completed the completion status
      * @param createdAt the creation timestamp (cannot be null)
      * @param position  the position within the list (cannot be negative)
+     * @param important the importance status
      * @throws IllegalArgumentException if any validation fails
      */
     @PersistenceCreator
@@ -79,6 +81,7 @@ public class TodoItem implements Persistable<UUID> {
         this.completed = completed;
         this.createdAt = createdAt;
         this.position = position;
+        this.important = false;
     }
 
     public UUID getId() {
@@ -141,6 +144,14 @@ public class TodoItem implements Persistable<UUID> {
     public void setPosition(int position) {
         validatePosition(position);
         this.position = position;
+    }
+
+    public boolean isImportant() {
+        return important;
+    }
+
+    public void setImportant(boolean important) {
+        this.important = important;
     }
 
     @Override
@@ -210,6 +221,7 @@ public class TodoItem implements Persistable<UUID> {
                 + ", text='" + text + '\''
                 + ", completed=" + completed
                 + ", position=" + position
+                + ", important=" + important
                 + ", createdAt=" + createdAt
                 + '}';
     }

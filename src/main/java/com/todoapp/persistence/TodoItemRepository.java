@@ -75,13 +75,13 @@ public interface TodoItemRepository extends CrudRepository<TodoItem, UUID> {
     List<TodoItem> findByListId(@Param("listId") UUID listId);
 
     /**
-     * Find all todo items for a specific list ordered by position ascending.
+     * Find all todo items for a specific list ordered by importance, position ascending.
      *
      * @param listId the list identifier
-     * @return list of todo items ordered by position then id
+     * @return list of todo items ordered by important, position then id
      */
-    @Query("SELECT * FROM TODO_ITEM WHERE LIST_ID = :listId ORDER BY POSITION ASC, ID ASC")
-    List<TodoItem> findAllByListIdOrderByPositionAsc(@Param("listId") UUID listId);
+    @Query("SELECT * FROM TODO_ITEM WHERE LIST_ID = :listId ORDER BY IMPORTANT DESC, POSITION ASC, ID ASC")
+    List<TodoItem> findAllByListIdOrdered(@Param("listId") UUID listId);
 
     /**
      * Find the maximum position for items in a specific list.

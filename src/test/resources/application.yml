@@ -1,3 +1,6 @@
+server:
+  port: 7070
+
 spring:
   datasource:
     # In-memory H2 database for tests - always starts clean

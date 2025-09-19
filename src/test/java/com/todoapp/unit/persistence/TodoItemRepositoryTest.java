@@ -220,7 +220,7 @@ class TodoItemRepositoryTest {
         repository.save(item2);
         repository.save(item3);
 
-        List<TodoItem> ordered = repository.findAllByListIdOrderByPositionAsc(testListId);
+        List<TodoItem> ordered = repository.findAllByListIdOrdered(testListId);
 
         assertThat(ordered).hasSize(3);
         assertThat(ordered.get(0).getPosition()).isEqualTo(0);

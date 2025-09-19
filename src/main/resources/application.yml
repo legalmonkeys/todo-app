@@ -1,3 +1,6 @@
+server:
+  port: 7070
+
 spring:
   datasource:
     # H2 file-based database with optimized settings
